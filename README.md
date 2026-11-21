@@ -2,13 +2,15 @@
 
 An original, single-file Classic Canasta game for Omarchy Game Vibes. Play four-handed partnership Canasta against three bots, with rule explanations when a move is not allowed.
 
+![The Canasta table](screenshot-light.png)
+
 ## Install
 
 ```bash
-omarchy games vibes install git@github.com:whelanh/omarchy-canasta-game.git
+omarchy games vibes install https://github.com/whelanh/omarchy-canasta-game.git
 ```
 
-The repo name normalizes to the installed game name `canasta`.
+Or open the Game Vibes menu, choose **Install > Gaming > Game Vibes**, and paste the URL. The repo name normalizes to the installed game name `canasta`.
 
 ## Controls
 
@@ -33,4 +35,6 @@ Melds show coloured ranks, with jokers as stars and wildcards on the right; a ca
 
 The left score table shows each team's total and first-meld threshold. A scorecard appears after every hand with the full scoring breakdown; close it to deal the next hand. Red 3s show as red 3s in the team row, and the opening deal and opponent melds are animated. The first hand starts with a random player, and the turn rotates after each hand.
 
-No build step, modules, local assets, or `fetch()` calls are used; the game runs directly from `file://` as Game Vibes requires.
+![Hand scorecard](screenshot-scorecard.png)
+
+No build step, local assets, or `fetch()` calls are used. three.js is pinned from a CDN, and the game runs directly from `file://` as Game Vibes requires.
