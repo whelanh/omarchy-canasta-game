@@ -22,7 +22,7 @@
   #help td:first-child { white-space: nowrap; }
 
   #table-ui { position: fixed; inset: 48px 12px 12px; display: grid; grid-template-columns: 1fr 1.5fr 1fr; grid-template-rows: 86px 1fr 176px; gap: 8px; pointer-events: none; z-index: 10; }
-  .seat { border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 74%, transparent); box-shadow: 0 4px 18px color-mix(in srgb, var(--background) 45%, transparent); padding: 6px 10px; font-size: 13px; pointer-events: none; }
+  .seat { border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 86%, transparent); box-shadow: 0 4px 18px color-mix(in srgb, var(--background) 45%, transparent); padding: 6px 10px; font-size: 13px; pointer-events: none; }
   .seat .name { display: block; margin-bottom: 4px; color: color-mix(in srgb, var(--accent) 72%, var(--foreground)); }
   .seat.top { grid-column: 2; grid-row: 1; width: 300px; justify-self: center; }
   .seat.left { grid-column: 1; grid-row: 2; width: 92px; justify-self: start; }
@@ -33,21 +33,23 @@
   .seat.left, .seat.right { display: flex; flex-direction: column; justify-content: center; align-items: center; }
   #left-cards, #right-cards { display: flex; flex-direction: column; align-items: center; gap: 1px; }
   #center { grid-column: 2; grid-row: 2; position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 0; }
-  #status { align-self: center; margin-top: auto; max-width: 100%; box-sizing: border-box; padding: 4px 14px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); background: color-mix(in srgb, var(--background) 82%, transparent); text-align: center; font-size: 13px; line-height: 1.35; min-height: 20px; color: color-mix(in srgb, var(--foreground) 82%, var(--accent)); }
+  #status { align-self: center; margin-top: auto; max-width: 100%; box-sizing: border-box; padding: 4px 14px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); background: color-mix(in srgb, var(--background) 92%, transparent); text-align: center; font-size: 13px; line-height: 1.35; min-height: 20px; color: color-mix(in srgb, var(--foreground) 82%, var(--accent)); }
   #melds { flex: 0 0 auto; width: 100%; max-height: 146px; margin-top: 6px; overflow-y: auto; overflow-x: hidden; display: flex; flex-wrap: nowrap; gap: 6px 10px; align-content: flex-start; justify-content: center; padding: 0; border: none; border-radius: 0; background: none; }
-  .team-melds { flex: 1 1 0; min-width: 0; max-width: 49%; display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 4px 8px; padding: 5px 8px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); background: color-mix(in srgb, var(--background) 78%, transparent); }
+  .team-melds { flex: 1 1 0; min-width: 0; max-width: 49%; display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 4px 8px; padding: 5px 8px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); background: color-mix(in srgb, var(--background) 88%, transparent); }
   .team-label { flex: 0 0 100%; font-size: 11px; color: color-mix(in srgb, var(--foreground) 74%, var(--background)); }
   .meld-row { display: flex; flex: 0 0 auto; gap: 2px; align-items: center; pointer-events: auto; border-radius: 6px; }
   .meld-row.canasta { outline: 1px solid var(--yellow); border-radius: 6px; padding: 2px; }
   .meld-row.target { outline: 2px solid var(--accent); outline-offset: 2px; cursor: pointer; background: color-mix(in srgb, var(--accent) 14%, transparent); }
   #stock-pile { position: absolute; left: 50%; top: 55%; transform: translate(-50%, -50%); display: flex; justify-content: center; align-items: center; gap: 22px; min-height: 84px; }
-  .pile-button { pointer-events: auto; }
-  .pile-label { display: block; font-size: 11px; text-align: center; color: color-mix(in srgb, var(--foreground) 72%, var(--background)); margin-top: 2px; }
+  .pile-button { all: unset; pointer-events: auto; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 7px; }
+  .pile-button:disabled { cursor: default; opacity: 0.55; }
+  .pile-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .pile-button:hover:not(:disabled) .card { transform: translateY(-2px); }
 
-  #hand-zone { grid-column: 1 / 3; grid-row: 3; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 80%, transparent); box-shadow: 0 6px 24px color-mix(in srgb, var(--background) 35%, transparent); padding: 6px; display: flex; flex-direction: column; min-width: 0; }
+  #hand-zone { grid-column: 1 / 3; grid-row: 3; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 96%, transparent); box-shadow: 0 6px 24px color-mix(in srgb, var(--background) 35%, transparent); padding: 6px; display: flex; flex-direction: column; min-width: 0; }
   #hand-label { font-size: 12px; margin-bottom: 4px; color: color-mix(in srgb, var(--foreground) 78%, var(--accent)); }
   #hand { display: flex; justify-content: center; align-items: flex-end; gap: 3px; overflow-x: auto; padding: 12px 4px 2px; min-height: 112px; }
-  #controls { grid-column: 3; grid-row: 3; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; align-content: center; padding: 6px; border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 90%, transparent); box-shadow: 0 6px 24px color-mix(in srgb, var(--background) 35%, transparent); pointer-events: auto; }
+  #controls { grid-column: 3; grid-row: 3; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; align-content: center; padding: 6px; border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 97%, transparent); box-shadow: 0 6px 24px color-mix(in srgb, var(--background) 35%, transparent); pointer-events: auto; }
   button.ui { font: inherit; font-size: 11px; padding: 6px 5px; color: var(--foreground); background: color-mix(in srgb, var(--background) 86%, var(--foreground)); border: 1px solid color-mix(in srgb, var(--foreground) 28%, transparent); border-radius: 6px; cursor: pointer; }
   button.ui:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
   button.ui:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -94,17 +96,6 @@
   .card.tiny .corner { display: none; }
   .card.tiny .centre { width: 12px; height: 12px; }
   .card.tiny .joker-star { width: 14px; height: 14px; }
-  .card.pile { width: 46px; height: 66px; border-radius: 6px; }
-  .card.pile .corner.top { top: 3px; left: 3px; }
-  .card.pile .corner.bottom { bottom: 3px; right: 3px; }
-  .card.pile .rank { font-size: 12px; }
-  .card.pile .suit { width: 8px; height: 8px; }
-  .card.pile .centre { width: 25px; height: 25px; }
-  .card.pile .court { font-size: 23px; }
-  .card.pile .court-wrap .suit { width: 9px; height: 9px; }
-  .card.pile .joker-rank { font-size: 6px; }
-  .card.pile .joker-star { width: 28px; height: 28px; }
-  .card.pile.back::after { inset: 5px; }
   .card.meld { width: 38px; height: 55px; border-radius: 5px; cursor: pointer; }
   .card.meld .corner.top { top: 2px; left: 3px; }
   .card.meld .corner.bottom { bottom: 2px; right: 3px; }
@@ -153,8 +144,8 @@
     <div id="melds"></div>
     <div id="status">Press Space to deal.</div>
     <div id="stock-pile">
-      <button class="ui pile-button" id="btn-draw-pile" title="Draw from stock (D)"><span id="stock-card"></span><span class="pile-label" id="stock-label">Stock · D</span></button>
-      <button class="ui pile-button" id="btn-take-pile" title="Take discard pile (T)"><span id="discard-card"></span><span class="pile-label" id="discard-label">Discard · T</span></button>
+      <button class="pile-button" id="btn-draw-pile" title="Draw from stock (D)" aria-label="Draw from stock"><span id="stock-card"></span></button>
+      <button class="pile-button" id="btn-take-pile" title="Take discard pile (T)" aria-label="Take discard pile"><span id="discard-card"></span></button>
     </div>
   </div>
 
@@ -302,8 +293,9 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.prepend(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(PALETTE.background);
-scene.fog = new THREE.Fog(PALETTE.background, 30, 70);
+const surroundColor = new THREE.Color(PALETTE.mode === 'light' ? PALETTE.background : '#2c3543');
+scene.background = surroundColor;
+scene.fog = new THREE.Fog(surroundColor, 30, 70);
 
 const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 200);
 
@@ -689,11 +681,9 @@ function renderMelds() {
 }
 
 function renderPiles() {
-  $('stock-card').innerHTML = stock.length ? '<div class="card back pile"></div>' : '<span class="dim">—</span>';
+  $('stock-card').innerHTML = stock.length ? '<div class="card back"></div>' : '<span class="dim">—</span>';
   const top = topCard();
-  $('discard-card').innerHTML = top ? cardHTML(top, 'pile') : '<span class="dim">—</span>';
-  $('stock-label').textContent = `Stock ${stock.length} · D`;
-  $('discard-label').textContent = `Discard ${discard.length} · T`;
+  $('discard-card').innerHTML = top ? cardHTML(top) : '<span class="dim">—</span>';
   $('btn-draw-pile').disabled = state !== 'playing' || turn !== 0 || phase !== 'draw';
   $('btn-take-pile').disabled = state !== 'playing' || turn !== 0 || phase !== 'draw' || !top;
 }
@@ -715,20 +705,20 @@ function renderStatus() {
   else if (phase === 'draw') {
     const blocked = top && (top.wild || top.redThree || top.blackThree);
     const frozen = !meldedThisRound[0] || discard.some(card => card.wild || card.redThree);
-    const pile = blocked ? ' The pile is blocked.' : frozen ? ' The pile is frozen.' : '';
+    const pile = blocked ? ' Blocked.' : frozen ? ' Frozen.' : '';
     if (!stock.length) {
       text = top && !blocked
-        ? 'The stock is empty: take the discard pile, or draw to end the hand.'
-        : 'The stock is empty: draw to end the hand.';
+        ? 'Stock empty: T takes the pile, or D ends the hand.'
+        : 'Stock empty: D ends the hand.';
     } else {
-      text = `Your turn: draw from the stock, or take the discard pile.${pile}`;
+      text = `Your turn: D draws; T takes the discard pile.${pile}`;
     }
   }
-  else if (firstMeldTurn && !meldedThisRound[0]) text = `First meld: you need ${threshold(0)} points. You have melded ${turnMeldValue} so far.`;
+  else if (firstMeldTurn && !meldedThisRound[0]) text = `First meld: ${threshold(0)} points needed; ${turnMeldValue} melded.`;
   else {
     const stagedCards = hands[0].filter(card => staged.has(card.id));
-    if (stagedCards.length === 1) text = `Staged ${cardName(stagedCards[0])}. F melds or lays it off; X discards it.`;
-    else if (stagedCards.length > 1) text = `Staged ${stagedCards.length} cards. F melds or lays them off.`;
+    if (stagedCards.length === 1) text = `Staged ${cardName(stagedCards[0])}. F meld/lay off; X discard.`;
+    else if (stagedCards.length > 1) text = `Staged ${stagedCards.length} cards. F meld/lay off.`;
     else text = 'Meld or lay off, then discard one card.';
   }
   $('status').textContent = text;
@@ -1465,20 +1455,20 @@ function build() {
   const woodDark = new THREE.Color('#402b1b');
   const woodRim = new THREE.Color('#6e4a2c');
   const woodLine = new THREE.Color('#b98f5c');
-  const feltColor = new THREE.Color(PALETTE.mode === 'light' ? '#356b42' : '#47586d');
-  const outer = new THREE.Mesh(new THREE.ShapeGeometry(tableShape(22.7, 14.3, 2.2)), new THREE.MeshBasicMaterial({ color: woodDark }));
+  const feltColor = new THREE.Color(PALETTE.mode === 'light' ? '#356b42' : '#2f6240');
+  const outer = new THREE.Mesh(new THREE.ShapeGeometry(tableShape(21.9, 13.8, 2.2)), new THREE.MeshBasicMaterial({ color: woodDark }));
   outer.rotation.x = -Math.PI / 2;
   scene.add(outer);
-  const rim = new THREE.Mesh(new THREE.ShapeGeometry(tableShape(22.2, 13.8, 2.1)), new THREE.MeshBasicMaterial({ color: woodRim }));
+  const rim = new THREE.Mesh(new THREE.ShapeGeometry(tableShape(21.4, 13.3, 2.1)), new THREE.MeshBasicMaterial({ color: woodRim }));
   rim.rotation.x = -Math.PI / 2;
   rim.position.y = 0.005;
   scene.add(rim);
-  const felt = new THREE.Mesh(new THREE.ShapeGeometry(tableShape(21.5, 13.1, 1.8)), new THREE.MeshBasicMaterial({ color: feltColor }));
+  const felt = new THREE.Mesh(new THREE.ShapeGeometry(tableShape(20.7, 12.6, 1.8)), new THREE.MeshBasicMaterial({ color: feltColor }));
   felt.rotation.x = -Math.PI / 2;
   felt.position.y = 0.01;
   scene.add(felt);
 
-  const inlayPoints = tableShape(20.5, 12.1, 1.65).getPoints(80)
+  const inlayPoints = tableShape(19.7, 11.6, 1.65).getPoints(80)
     .map(point => new THREE.Vector3(point.x, 0, point.y));
   const inlay = new THREE.LineLoop(
     new THREE.BufferGeometry().setFromPoints(inlayPoints),
@@ -1489,7 +1479,7 @@ function build() {
   scene.add(inlay);
 
   const medallion = new THREE.Mesh(
-    new THREE.RingGeometry(2.45, 2.57, 64),
+    new THREE.RingGeometry(2.35, 2.47, 64),
     new THREE.MeshBasicMaterial({ color: woodLine, transparent: true, opacity: 0.22 }),
   );
   medallion.rotation.x = -Math.PI / 2;
@@ -1521,7 +1511,7 @@ function build() {
 }
 
 function resized() {
-  fitCamera(27.2, 17.8, { tilt: 1.12, target: [0, 0, 0] });
+  fitCamera(28, 18.3, { tilt: 1.12, target: [0, 0, 0] });
 }
 
 function reset() {
