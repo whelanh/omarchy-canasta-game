@@ -22,24 +22,29 @@
   #help td:first-child { white-space: nowrap; }
 
   #table-ui { position: fixed; inset: 48px 12px 12px; display: grid; grid-template-columns: 1fr 1.5fr 1fr; grid-template-rows: 86px 1fr 176px; gap: 8px; pointer-events: none; z-index: 10; }
-  .seat { border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 55%, transparent); padding: 6px 10px; font-size: 13px; pointer-events: none; }
-  .seat .name { display: block; margin-bottom: 4px; color: var(--accent); }
-  .seat.top { grid-column: 2; grid-row: 1; }
-  .seat.left { grid-column: 1; grid-row: 2; }
-  .seat.right { grid-column: 3; grid-row: 2; }
+  .seat { border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 74%, transparent); box-shadow: 0 4px 18px color-mix(in srgb, var(--background) 45%, transparent); padding: 6px 10px; font-size: 13px; pointer-events: none; }
+  .seat .name { display: block; margin-bottom: 4px; color: color-mix(in srgb, var(--accent) 72%, var(--foreground)); }
+  .seat.top { grid-column: 2; grid-row: 1; width: 300px; justify-self: center; }
+  .seat.left { grid-column: 1; grid-row: 2; width: 92px; justify-self: start; }
+  .seat.right { grid-column: 3; grid-row: 2; width: 92px; justify-self: end; }
+  #partner-cards { display: flex; justify-content: center; align-items: center; min-height: 43px; }
+  #partner-cards .card { margin-left: -10px; }
+  #partner-cards .card:first-child { margin-left: 0; }
+  .seat.left, .seat.right { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  #left-cards, #right-cards { display: flex; flex-direction: column; align-items: center; gap: 1px; }
   #center { grid-column: 2; grid-row: 2; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
-  #status { text-align: center; font-size: 14px; min-height: 20px; color: var(--accent); }
-  #melds { flex: 1; overflow: auto; display: flex; flex-wrap: wrap; gap: 10px 16px; align-content: flex-start; justify-content: center; padding: 6px; border: 1px dashed color-mix(in srgb, var(--foreground) 16%, transparent); border-radius: 12px; }
-  .team-melds { display: flex; flex-direction: column; gap: 5px; }
-  .team-label { font-size: 11px; color: var(--dim, var(--muted)); }
+  #status { align-self: center; max-width: 100%; box-sizing: border-box; padding: 4px 14px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); background: color-mix(in srgb, var(--background) 82%, transparent); text-align: center; font-size: 13px; line-height: 1.35; min-height: 20px; color: color-mix(in srgb, var(--foreground) 82%, var(--accent)); }
+  #melds { flex: 1; overflow: auto; display: flex; flex-wrap: wrap; gap: 10px 16px; align-content: flex-start; justify-content: center; padding: 6px; border: 1px dashed color-mix(in srgb, var(--foreground) 22%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 40%, transparent); }
+  .team-melds { display: flex; flex-direction: column; gap: 5px; min-width: 120px; padding: 5px 8px; border-radius: 8px; background: color-mix(in srgb, var(--background) 42%, transparent); }
+  .team-label { font-size: 11px; color: color-mix(in srgb, var(--foreground) 74%, var(--background)); }
   .meld-row { display: flex; gap: 2px; align-items: center; }
   .meld-row.canasta { outline: 1px solid var(--yellow); border-radius: 6px; padding: 2px; }
-  #stock-pile { display: flex; justify-content: center; align-items: center; gap: 18px; min-height: 72px; }
+  #stock-pile { display: flex; justify-content: center; align-items: center; gap: 22px; min-height: 84px; }
   .pile-button { pointer-events: auto; }
-  .pile-label { display: block; font-size: 11px; text-align: center; color: var(--dim, var(--muted)); margin-top: 2px; }
+  .pile-label { display: block; font-size: 11px; text-align: center; color: color-mix(in srgb, var(--foreground) 72%, var(--background)); margin-top: 2px; }
 
-  #hand-zone { grid-column: 1 / 3; grid-row: 3; border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 55%, transparent); padding: 6px; display: flex; flex-direction: column; min-width: 0; }
-  #hand-label { font-size: 12px; margin-bottom: 4px; color: var(--accent); }
+  #hand-zone { grid-column: 1 / 3; grid-row: 3; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 80%, transparent); box-shadow: 0 6px 24px color-mix(in srgb, var(--background) 35%, transparent); padding: 6px; display: flex; flex-direction: column; min-width: 0; }
+  #hand-label { font-size: 12px; margin-bottom: 4px; color: color-mix(in srgb, var(--foreground) 78%, var(--accent)); }
   #hand { display: flex; justify-content: center; align-items: flex-end; gap: 3px; overflow-x: auto; padding: 12px 4px 2px; min-height: 112px; }
   #controls { grid-column: 3; grid-row: 3; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; align-content: start; pointer-events: auto; }
   button.ui { font: inherit; font-size: 12px; padding: 7px 6px; color: var(--foreground); background: color-mix(in srgb, var(--background) 80%, var(--foreground)); border: 1px solid color-mix(in srgb, var(--foreground) 28%, transparent); border-radius: 7px; cursor: pointer; }
@@ -48,43 +53,63 @@
   button.ui.primary { border-color: var(--accent); color: var(--accent); }
   button.ui.wide { grid-column: 1 / -1; }
 
-  .card { position: relative; width: 58px; height: 84px; flex: 0 0 auto; border-radius: 7px; border: 1px solid color-mix(in srgb, var(--foreground) 35%, transparent); background: color-mix(in srgb, var(--background) 88%, var(--foreground)); color: var(--foreground); box-shadow: 0 2px 6px color-mix(in srgb, var(--background) 80%, transparent); pointer-events: auto; cursor: pointer; user-select: none; transition: transform 90ms ease, outline-color 90ms ease; }
-  .card .rank { position: absolute; top: 3px; left: 5px; font-size: 16px; font-weight: 700; line-height: 1; }
-  .card .rank.bottom { top: auto; left: auto; right: 5px; bottom: 3px; transform: rotate(180deg); }
-  .card .pip { position: absolute; top: 22px; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; }
-  .card .pip.big { top: 28px; width: 32px; height: 32px; }
+  .card { position: relative; width: 58px; height: 84px; flex: 0 0 auto; border-radius: 7px; border: 1px solid color-mix(in srgb, var(--foreground) 28%, transparent); background: linear-gradient(145deg, color-mix(in srgb, var(--foreground) 8%, transparent), transparent 48%), color-mix(in srgb, var(--background) 86%, var(--foreground)); color: var(--foreground); box-shadow: 0 2px 7px color-mix(in srgb, var(--background) 72%, transparent); pointer-events: auto; cursor: pointer; user-select: none; transition: transform 90ms ease, outline-color 90ms ease; }
+  .card:not(.back)::before { content: ""; position: absolute; inset: 2px; border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); border-radius: 5px; pointer-events: none; }
+  .card .corner { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 1px; line-height: 1; font-weight: 700; }
+  .card .corner.top { top: 3px; left: 4px; }
+  .card .corner.bottom { bottom: 3px; right: 4px; transform: rotate(180deg); }
+  .card .rank { font-size: 15px; line-height: 1; letter-spacing: -.5px; }
+  .card .suit { display: block; width: 10px; height: 10px; fill: currentColor; }
+  .card .centre { position: absolute; left: 50%; top: 52%; width: 32px; height: 32px; transform: translate(-50%, -50%); fill: currentColor; }
+  .card .court-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+  .card .court { font-family: Georgia, "Times New Roman", serif; font-size: 29px; font-weight: 700; line-height: .8; }
+  .card .court-wrap .suit { width: 12px; height: 12px; }
+  .card .joker-rank { font-size: 7px; letter-spacing: .4px; }
+  .card .joker-star { width: 35px; height: 35px; }
   .card.red { color: var(--red); }
-  .card.wild { background: color-mix(in srgb, var(--background) 72%, var(--accent)); color: var(--accent); }
+  .card.black { color: var(--foreground); }
+  .card.wild { border-color: color-mix(in srgb, var(--accent) 65%, transparent); background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 18%, transparent), transparent 52%), color-mix(in srgb, var(--background) 82%, var(--accent)); color: var(--accent); }
+  .card.wild:not(.joker)::after { content: ""; position: absolute; top: 5px; right: 5px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 5px color-mix(in srgb, var(--accent) 80%, transparent); }
   .card.selected { outline: 3px solid var(--accent); transform: translateY(-14px); }
   .card.cursor { outline: 2px dashed var(--yellow); }
   .card.selected.cursor { outline: 3px solid var(--accent); }
-  .card.back { cursor: default; background: repeating-linear-gradient(45deg, var(--muted) 0 6px, color-mix(in srgb, var(--muted) 60%, var(--accent)) 6px 12px); border-color: var(--accent); }
-  .card.back::after { content: ""; position: absolute; inset: 8px; border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent); border-radius: 4px; }
+  .card.back { cursor: default; border-color: color-mix(in srgb, var(--accent) 85%, var(--foreground)); background: repeating-linear-gradient(45deg, transparent 0 6px, color-mix(in srgb, var(--background) 30%, transparent) 6px 8px), repeating-linear-gradient(-45deg, transparent 0 6px, color-mix(in srgb, var(--background) 20%, transparent) 6px 8px), color-mix(in srgb, var(--accent) 58%, var(--background)); }
+  .card.back::before { content: ""; position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; border: 1px solid color-mix(in srgb, var(--background) 55%, transparent); transform: translate(-50%, -50%) rotate(45deg); }
+  .card.back::after { content: ""; position: absolute; inset: 7px; border: 1px solid color-mix(in srgb, var(--background) 45%, transparent); border-radius: 4px; }
+  .card.mini.back::before { width: 7px; height: 7px; }
+  .card.tiny.back::before { width: 5px; height: 5px; }
+  .card.tiny.back::after { inset: 4px; }
   .card.mini { width: 30px; height: 43px; border-radius: 4px; cursor: default; }
-  .card.mini .rank { font-size: 10px; top: 2px; left: 3px; }
-  .card.mini .rank.bottom { right: 3px; bottom: 2px; }
-  .card.mini .pip { width: 10px; height: 10px; top: 15px; }
-  .card.mini .pip.big { display: none; }
+  .card.mini .corner.top { top: 2px; left: 2px; }
+  .card.mini .corner.bottom { bottom: 2px; right: 2px; }
+  .card.mini .rank { font-size: 9px; }
+  .card.mini .suit { width: 6px; height: 6px; }
+  .card.mini .centre { width: 16px; height: 16px; }
+  .card.mini .court { font-size: 16px; }
+  .card.mini .court-wrap .suit { width: 7px; height: 7px; }
+  .card.mini .joker-rank { display: none; }
+  .card.mini .joker-star { width: 19px; height: 19px; }
   .card.tiny { width: 22px; height: 32px; border-radius: 3px; }
-  .card.tiny .rank { font-size: 8px; top: 1px; left: 2px; }
-  .card.tiny .rank.bottom { right: 2px; bottom: 1px; }
-  .card.tiny .pip, .card.tiny .pip.big { display: none; }
-
-  .suit { display: block; width: 100%; height: 100%; position: relative; }
-  .suit.heart::before, .suit.heart::after, .suit.diamond::before { content: ""; position: absolute; background: currentColor; }
-  .suit.heart::before, .suit.heart::after { width: 50%; height: 80%; border-radius: 50% 50% 45% 45%; top: 0; }
-  .suit.heart::before { left: 0; transform: rotate(-45deg); transform-origin: 100% 100%; }
-  .suit.heart::after { right: 0; transform: rotate(45deg); transform-origin: 0 100%; }
-  .suit.heart { clip-path: polygon(50% 100%, 6% 48%, 6% 25%, 25% 6%, 50% 24%, 75% 6%, 94% 25%, 94% 48%); }
-  .suit.diamond::before { inset: 12%; transform: rotate(45deg); }
-  .suit.spade, .suit.club { clip-path: polygon(50% 0, 88% 38%, 68% 38%, 92% 72%, 58% 72%, 58% 92%, 42% 92%, 42% 72%, 8% 72%, 32% 38%, 12% 38%); background: currentColor; }
-  .suit.club { clip-path: circle(26% at 50% 24%), circle(26% at 24% 62%), circle(26% at 76% 62%), polygon(44% 45%, 56% 45%, 64% 100%, 36% 100%); }
+  .card.tiny .corner { display: none; }
+  .card.tiny .centre { width: 12px; height: 12px; }
+  .card.tiny .joker-star { width: 14px; height: 14px; }
+  .card.pile { width: 46px; height: 66px; border-radius: 6px; }
+  .card.pile .corner.top { top: 3px; left: 3px; }
+  .card.pile .corner.bottom { bottom: 3px; right: 3px; }
+  .card.pile .rank { font-size: 12px; }
+  .card.pile .suit { width: 8px; height: 8px; }
+  .card.pile .centre { width: 25px; height: 25px; }
+  .card.pile .court { font-size: 23px; }
+  .card.pile .court-wrap .suit { width: 9px; height: 9px; }
+  .card.pile .joker-rank { font-size: 6px; }
+  .card.pile .joker-star { width: 28px; height: 28px; }
+  .card.pile.back::after { inset: 5px; }
 
   #message { position: fixed; left: 16px; bottom: 196px; max-width: min(390px, 40vw); z-index: 30; pointer-events: none; }
   #message-text { display: block; padding: 9px 12px; border-radius: 9px; font-size: 13px; line-height: 1.4; background: color-mix(in srgb, var(--background) 92%, transparent); border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent); }
   #message-text.warn { border-color: var(--yellow); color: var(--yellow); }
   #message-text.good { border-color: var(--green); color: var(--green); }
-  #log { margin-top: 6px; font-size: 11px; color: var(--dim, var(--muted)); max-height: 72px; overflow: hidden; }
+  #log { margin-top: 6px; font-size: 11px; color: color-mix(in srgb, var(--foreground) 66%, var(--background)); max-height: 72px; overflow: hidden; }
   #prompt { position: fixed; inset: 0; display: none; place-items: center; background: color-mix(in srgb, var(--background) 60%, transparent); z-index: 60; }
   #prompt.show { display: grid; }
   #prompt > div { padding: 22px 28px; border-radius: 12px; background: color-mix(in srgb, var(--background) 96%, transparent); border: 1px solid var(--yellow); max-width: 560px; text-align: center; }
@@ -116,8 +141,8 @@
     <div id="status">Press Space to deal.</div>
     <div id="melds"></div>
     <div id="stock-pile">
-      <button class="ui pile-button" id="btn-draw-pile" title="Draw from stock (D)"><span id="stock-card"></span><span class="pile-label">Stock · D</span></button>
-      <button class="ui pile-button" id="btn-take-pile" title="Take discard pile (T)"><span id="discard-card"></span><span class="pile-label">Discard · T</span></button>
+      <button class="ui pile-button" id="btn-draw-pile" title="Draw from stock (D)"><span id="stock-card"></span><span class="pile-label" id="stock-label">Stock · D</span></button>
+      <button class="ui pile-button" id="btn-take-pile" title="Take discard pile (T)"><span id="discard-card"></span><span class="pile-label" id="discard-label">Discard · T</span></button>
     </div>
   </div>
 
@@ -482,20 +507,42 @@ function topCard() {
   return discard[discard.length - 1] ?? null;
 }
 
-function cardHTML(card, extra = '') {
-  const label = rankLabel(card.rank);
-  const color = card.wild ? 'wild' : card.red ? 'red' : '';
-  const pip = card.wild
-    ? '<span class="pip big" style="display:grid;place-items:center;font-weight:700;">W</span>'
-    : `<span class="pip"><span class="suit ${SUIT_CLASS[card.suit]}"></span></span><span class="pip big"><span class="suit ${SUIT_CLASS[card.suit]}"></span></span>`;
-  return `<div class="card ${color} ${extra}" data-id="${card.id}"><span class="rank">${label}</span>${pip}<span class="rank bottom">${label}</span></div>`;
+const SUIT_PATHS = [
+  'M12 2C17 8 22 11 22 15A4.6 4.6 0 0 1 13.2 16.6C13.4 19 14.2 20.6 15.5 22H8.5C9.8 20.6 10.6 19 10.8 16.6A4.6 4.6 0 0 1 2 15C2 11 7 8 12 2Z',
+  'M12 21C5 15 2 11.5 2 7.5A5 5 0 0 1 12 6A5 5 0 0 1 22 7.5C22 11.5 19 15 12 21Z',
+  'M12 2L20 12L12 22L4 12Z',
+  'M12 2a4.6 4.6 0 1 1 0 9.2a4.6 4.6 0 1 1 0-9.2ZM6.6 8.4a4.6 4.6 0 1 1 0 9.2a4.6 4.6 0 1 1 0-9.2ZM17.4 8.4a4.6 4.6 0 1 1 0 9.2a4.6 4.6 0 1 1 0-9.2ZM11 11h2c0 5 .8 8.6 2.5 11h-7c1.7-2.4 2.5-6 2.5-11Z',
+];
+const STAR_PATH = 'M12 1.8l2.9 6.4 7 .7-5.3 4.6 1.6 6.9L12 17l-6.2 3.4 1.6-6.9L2.1 8.9l7-.7Z';
+
+function suitSVG(suit, className = '') {
+  return `<svg class="suit ${className}" viewBox="0 0 24 24" aria-hidden="true"><path d="${SUIT_PATHS[suit]}"/></svg>`;
 }
 
-function backs(count, extra = '') {
+function cardHTML(card, extra = '') {
+  const joker = card.rank === 0;
+  const label = rankLabel(card.rank);
+  const color = card.wild ? 'wild' : card.red ? 'red' : 'black';
+  const classes = ['card', color, joker ? 'joker' : '', extra].filter(Boolean).join(' ');
+  const corner = joker
+    ? '<span class="joker-rank">JOKER</span>'
+    : `<span class="rank">${label}</span>${suitSVG(card.suit)}`;
+  let centre;
+  if (joker) {
+    centre = `<svg class="centre joker-star" viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR_PATH}"/></svg>`;
+  } else if (card.rank >= 11 && card.rank <= 13) {
+    centre = `<span class="court-wrap"><span class="court">${label}</span>${suitSVG(card.suit)}</span>`;
+  } else {
+    centre = suitSVG(card.suit, 'centre');
+  }
+  return `<div class="${classes}" data-id="${card.id}" title="${cardName(card)}"><span class="corner top">${corner}</span>${centre}<span class="corner bottom">${corner}</span></div>`;
+}
+
+function backs(count, extra = '', max = 7) {
   if (!count) return '<span class="dim">empty</span>';
   let html = '';
-  for (let i = 0; i < Math.min(count, 7); i++) html += `<div class="card back ${extra}"></div>`;
-  if (count > 7) html += `<span class="dim">+${count - 7}</span>`;
+  for (let i = 0; i < Math.min(count, max); i++) html += `<div class="card back ${extra}"></div>`;
+  if (count > max) html += `<span class="dim">+${count - max}</span>`;
   return html;
 }
 
@@ -559,7 +606,7 @@ function clearStaged() {
 
 function renderSeats() {
   $('left-cards').innerHTML = backs(hands[1].length, 'tiny');
-  $('partner-cards').innerHTML = backs(hands[2].length, 'tiny');
+  $('partner-cards').innerHTML = backs(hands[2].length, 'mini', 11);
   $('right-cards').innerHTML = backs(hands[3].length, 'tiny');
 }
 
@@ -577,9 +624,11 @@ function renderMelds() {
 }
 
 function renderPiles() {
-  $('stock-card').innerHTML = stock.length ? '<div class="card back mini"></div>' : '<span class="dim">—</span>';
+  $('stock-card').innerHTML = stock.length ? '<div class="card back pile"></div>' : '<span class="dim">—</span>';
   const top = topCard();
-  $('discard-card').innerHTML = top ? cardHTML(top, 'mini') : '<span class="dim">—</span>';
+  $('discard-card').innerHTML = top ? cardHTML(top, 'pile') : '<span class="dim">—</span>';
+  $('stock-label').textContent = `Stock ${stock.length} · D`;
+  $('discard-label').textContent = `Discard ${discard.length} · T`;
   $('btn-draw-pile').disabled = state !== 'playing' || turn !== 0 || phase !== 'draw';
   $('btn-take-pile').disabled = state !== 'playing' || turn !== 0 || phase !== 'draw' || !top;
 }
@@ -1245,15 +1294,33 @@ function build() {
     shape.quadraticCurveTo(x, y, x + radius, y);
     return shape;
   };
-  const borderColor = new THREE.Color(PALETTE.accent).lerp(new THREE.Color(PALETTE.background), 0.55);
-  const feltColor = new THREE.Color(PALETTE.green).lerp(new THREE.Color(PALETTE.background), PALETTE.mode === 'light' ? 0.25 : 0.5);
-  const border = new THREE.Mesh(new THREE.ShapeGeometry(tableShape(25, 16, 2)), new THREE.MeshBasicMaterial({ color: borderColor }));
+  const borderColor = new THREE.Color(PALETTE.accent).lerp(new THREE.Color(PALETTE.background), 0.72);
+  const feltColor = new THREE.Color(PALETTE.green).lerp(new THREE.Color(PALETTE.background), PALETTE.mode === 'light' ? 0.34 : 0.74);
+  const border = new THREE.Mesh(new THREE.ShapeGeometry(tableShape(24.78, 15.78, 2)), new THREE.MeshBasicMaterial({ color: borderColor }));
   border.rotation.x = -Math.PI / 2;
   scene.add(border);
   const felt = new THREE.Mesh(new THREE.ShapeGeometry(tableShape(24.4, 15.4, 1.8)), new THREE.MeshBasicMaterial({ color: feltColor }));
   felt.rotation.x = -Math.PI / 2;
   felt.position.y = 0.01;
   scene.add(felt);
+
+  const inlayPoints = tableShape(23.2, 14.2, 1.75).getPoints(80)
+    .map(point => new THREE.Vector3(point.x, 0, point.y));
+  const inlay = new THREE.LineLoop(
+    new THREE.BufferGeometry().setFromPoints(inlayPoints),
+    new THREE.LineBasicMaterial({ color: borderColor, transparent: true, opacity: 0.5 }),
+  );
+  inlay.rotation.x = -Math.PI / 2;
+  inlay.position.y = 0.02;
+  scene.add(inlay);
+
+  const medallion = new THREE.Mesh(
+    new THREE.RingGeometry(2.8, 2.92, 64),
+    new THREE.MeshBasicMaterial({ color: borderColor, transparent: true, opacity: 0.2 }),
+  );
+  medallion.rotation.x = -Math.PI / 2;
+  medallion.position.y = 0.02;
+  scene.add(medallion);
 
   $('hand').addEventListener('click', event => {
     const element = event.target.closest('.card[data-id]');
