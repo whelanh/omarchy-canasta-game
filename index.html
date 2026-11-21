@@ -47,7 +47,7 @@
   #partner-cards { display: flex; justify-content: center; align-items: center; min-height: 43px; }
   #partner-cards .card { margin-left: -10px; }
   #partner-cards .card:first-child { margin-left: 0; }
-  .seat.left, .seat.right { display: flex; flex-direction: column; justify-content: flex-start; align-items: center; align-self: start; }
+  .seat.left, .seat.right { display: flex; flex-direction: column; justify-content: center; align-items: center; }
   #left-cards, #right-cards { display: flex; flex-direction: column; align-items: center; gap: 1px; }
   #center { grid-column: 2; grid-row: 2; position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 0; }
   #status { align-self: center; margin-top: auto; max-width: 100%; box-sizing: border-box; padding: 4px 14px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); background: color-mix(in srgb, var(--background) 92%, transparent); text-align: center; font-size: 13px; line-height: 1.35; min-height: 20px; color: color-mix(in srgb, var(--foreground) 82%, var(--accent)); }
@@ -61,6 +61,7 @@
   .meld-glyph.red { color: var(--red); }
   .meld-glyph.black { color: var(--foreground); }
   .meld-glyph.joker { color: var(--accent); font-size: 17px; }
+  .meld-glyph.ten { letter-spacing: 1.5px; margin-right: 4px; }
   .meld-mult { display: inline-block; margin-right: 2px; font-size: 13px; font-weight: 700; color: var(--accent); }
   .red-row { flex: 0 0 100%; display: flex; align-items: center; gap: 2px; padding: 1px 2px; }
   .red-label { margin-right: 2px; font-size: 10px; color: color-mix(in srgb, var(--foreground) 60%, var(--background)); }
@@ -154,7 +155,7 @@
   #message-text { display: block; padding: 9px 12px; border-radius: 9px; font-size: 13px; line-height: 1.4; background: color-mix(in srgb, var(--background) 92%, transparent); border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent); }
   #message-text.warn { border-color: var(--yellow); color: var(--yellow); }
   #message-text.good { border-color: var(--green); color: var(--green); }
-  #log { margin-top: 6px; font-size: 11px; color: color-mix(in srgb, var(--foreground) 66%, var(--background)); max-height: 72px; overflow: hidden; }
+  #log { display: none; }
   #prompt { position: fixed; inset: 0; display: none; place-items: center; background: color-mix(in srgb, var(--background) 60%, transparent); z-index: 60; }
   #prompt.show { display: grid; }
   #prompt > div { padding: 22px 28px; border-radius: 12px; background: color-mix(in srgb, var(--background) 96%, transparent); border: 1px solid var(--yellow); max-width: 560px; text-align: center; }
@@ -735,14 +736,14 @@ function renderMelds() {
           .sort((a, b) => (a.rank === 0 ? 1 : 0) - (b.rank === 0 ? 1 : 0));
         const glyph = card => card.rank === 0
           ? `<span class="meld-glyph joker" title="${cardName(card)}">★</span>`
-          : `<span class="meld-glyph ${card.red ? 'red' : 'black'}" title="${cardName(card)}">${rankLabel(card.rank)}</span>`;
+          : `<span class="meld-glyph ${card.red ? 'red' : 'black'}${card.rank === 10 ? ' ten' : ''}" title="${cardName(card)}">${rankLabel(card.rank)}</span>`;
         const canasta = meld.cards.length >= 7;
         let cards = '';
         if (canasta) {
           const face = naturals[0];
           const title = `${meld.cards.length}-card canasta: ${naturals.length} ${rankLabel(face.rank)}${naturals.length === 1 ? '' : 's'}${wilds.length ? ` and ${wilds.length} wild${wilds.length === 1 ? '' : 's'}` : ''}`;
           cards += `<span class="meld-mult" title="${title}">${naturals.length}×</span>`;
-          cards += `<span class="meld-glyph ${face.red ? 'red' : 'black'}" title="${cardName(face)}">${rankLabel(face.rank)}</span>`;
+          cards += glyph(face);
         } else {
           cards += naturals.map(glyph).join('');
         }
