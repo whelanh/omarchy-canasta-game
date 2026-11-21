@@ -211,7 +211,7 @@
   </table>
   <p class="dim">Make melds of 3+ equal cards. At least two must be natural, and a meld can contain at most three wild cards (2s and Jokers). Seven cards make a Canasta. Red 3s are laid aside automatically for bonus points; black 3s can only be melded when going out.</p>
   <p class="dim">A team may have only one meld of each rank, so matching cards are added to it. Click a team meld to add staged cards to it. Your team's first meld must reach the threshold shown in the status line, unless you meld your whole hand with a Canasta. The discard pile may be frozen or blocked — the game will say which.</p>
-  <p class="dim">Melds show a multiplier and one card face; wild cards in mixed melds are shown separately.</p>
+  <p class="dim">Melds show a multiplier and one card face; wild cards in mixed melds are shown separately. Taking the pile uses two matching natural cards from your hand; stage a wild or extra cards to include them.</p>
   <p class="dim">Press any key to close</p>
 </div></div>
 
@@ -929,20 +929,54 @@ function humanTake() {
   const stagedCards = hands[0].filter(card => staged.has(card.id));
   const stagedIds = new Set(stagedCards.map(card => card.id));
   const frozen = !meldedThisRound[team] || discard.some(card => card.wild || card.redThree);
-  const promisedCards = [top, ...stagedCards];
-  const handAfterTake = hands[0].length - stagedCards.length + Math.max(0, discard.length - 1);
-  const bothMeld = sameRankMeld(team, promisedCards);
-  let target = null, check;
-  if (frozen) {
-    check = validateMeld(promisedCards);
-    if (!check.ok) return notify(`The pile is frozen against your team. ${check.reason}`, 'warn');
-    if (!check.natural) return notify('The pile is frozen: the promised meld must be natural, with no wild cards.', 'warn');
-    target = bothMeld;
-  } else {
-    target = layoffTargets(team, promisedCards)[0] ?? bothMeld;
+
+  const evaluate = cards => {
+    const promised = [top, ...cards];
+    const bothMeld = sameRankMeld(team, promised);
+    let target = null, check;
+    if (frozen) {
+      check = validateMeld(promised);
+      if (!check.ok) return { ok: false, check, promised, target: null, frozenWild: false };
+      if (!check.natural) return { ok: false, check, promised, target: null, frozenWild: true };
+      target = bothMeld;
+    } else {
+      target = layoffTargets(team, promised)[0] ?? bothMeld;
+    }
+    check = target ? validateLayoff(target, promised) : validateMeld(promised);
+    return { ok: check.ok, check, promised, target, frozenWild: false };
+  };
+
+  // If the player has not staged the two cards the pile needs, use matching
+  // natural cards from the hand. Taking the pile is the player's intent here.
+  let usedCards = stagedCards.slice();
+  let attempt = evaluate(usedCards);
+  if (!attempt.ok) {
+    const naturalCount = usedCards.filter(card => !card.wild && card.rank === top.rank).length;
+    const candidates = hands[0].filter(card => !stagedIds.has(card.id)
+      && !card.wild && !card.redThree && card.rank === top.rank);
+    const need = Math.max(0, 2 - naturalCount);
+    for (let i = 0; i < Math.min(need, candidates.length); i++) {
+      usedCards = usedCards.concat(candidates[i]);
+      attempt = evaluate(usedCards);
+      if (attempt.ok) break;
+    }
   }
-  check = target ? validateLayoff(target, promisedCards) : validateMeld(promisedCards);
-  if (!check.ok) return notify(`You cannot take that pile: ${check.reason}`, 'warn');
+  if (!attempt.ok) {
+    if (attempt.frozenWild) return notify('The pile is frozen: the promised meld must be natural, with no wild cards.', 'warn');
+    const hint = frozen
+      ? `To take the ${rankLabel(top.rank)}, stage two natural cards of that rank from your hand.`
+      : `To take the ${rankLabel(top.rank)}, stage two natural cards of that rank from your hand (or one of that rank and a wild).`;
+    if (/at least three cards|at least two natural/.test(attempt.check.reason)) {
+      return notify(`You cannot take that pile. ${hint}`, 'warn');
+    }
+    return notify(`You cannot take that pile: ${attempt.check.reason}`, 'warn');
+  }
+
+  const check = attempt.check;
+  const target = attempt.target;
+  const promisedCards = attempt.promised;
+  const usedIds = new Set(usedCards.map(card => card.id));
+  const handAfterTake = hands[0].length - usedCards.length + Math.max(0, discard.length - 1);
   const canastaAfter = hasCanasta(team) || (target
     ? target.cards.length + promisedCards.length >= 7
     : promisedCards.length >= 7);
@@ -950,7 +984,7 @@ function humanTake() {
   const firstMeldPending = !meldedThisRound[team];
   if (firstMeldPending && turnMeldValue + check.points < threshold(team) && !goingOut) {
     const short = threshold(team) - turnMeldValue - check.points;
-    const remaining = hands[0].filter(card => !stagedIds.has(card.id));
+    const remaining = hands[0].filter(card => !usedIds.has(card.id));
     if (!findInitialPlan(0, short, remaining)) {
       return notify(`That pile meld is ${formatScore(check.points)} points; your team still needs ${short} more for its first meld, and your other cards cannot make it up.`, 'warn');
     }
@@ -958,7 +992,7 @@ function humanTake() {
   if (handAfterTake <= 1 && !canastaAfter) {
     return notify('That would leave you with fewer than two cards without a Canasta.', 'warn');
   }
-  hands[0] = hands[0].filter(card => !stagedIds.has(card.id));
+  hands[0] = hands[0].filter(card => !usedIds.has(card.id));
   if (target) target.cards.push(...promisedCards);
   else {
     melds.push({ team, cards: promisedCards.slice() });

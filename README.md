@@ -29,6 +29,6 @@ Click any of your team's melds to add the staged cards to it.
 
 This is the Classic Canasta variant: two decks plus four jokers, partnerships, 11-card hands, first-meld thresholds, frozen and blocked piles, red-three bonuses, Canastas, going out, and play to 5,000 points. The game explains illegal moves such as blocked pile pickups, insufficient first melds, invalid meld composition, and discarding a card that could be laid off.
 
-Melds are drawn compactly as a multiplier and one card face; wild cards in mixed melds are shown separately. The stock and discard piles sit in the middle of the table and show only their cards — no counts — so you have to keep track, as at a real table.
+Melds are drawn compactly as a multiplier and one card face; wild cards in mixed melds are shown separately. Taking the discard pile automatically uses two matching natural cards from your hand; stage a wild or extra cards to include them. The stock and discard piles sit in the middle of the table and show only their cards — no counts — so you have to keep track, as at a real table.
 
 No build step, modules, local assets, or `fetch()` calls are used; the game runs directly from `file://` as Game Vibes requires.
