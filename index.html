@@ -262,9 +262,9 @@
     <tr><td class="key">Esc / P</td><td>Pause, resume, back to all games</td></tr>
     <tr><td class="key">M / ?</td><td>Sound on or off / this help</td></tr>
   </table>
-  <p class="dim">Make melds of 3+ equal cards. At least two must be natural, and a meld can contain at most three wild cards (2s and Jokers). Seven cards make a Canasta. Red 3s turn up in the team's red 3s row for bonus points; black 3s can only be melded when going out.</p>
-  <p class="dim">A team may have only one meld of each rank, so matching cards are added to it. Click a team meld to add staged cards to it. Your team's first meld must reach the threshold shown in the status line, unless you meld your whole hand with a Canasta. The discard pile may be frozen or blocked — the game will say which.</p>
-  <p class="dim">Melds show coloured ranks, with jokers as stars and wildcards on the right. A canasta of seven or more cards shows a count. Taking the pile uses two matching natural cards from your hand; stage a wild or extra cards to include them.</p>
+  <p class="dim">Make melds of 3+ equal cards. At least two must be natural, and a meld can contain at most three wild cards (2s and Jokers). Seven cards make a Canasta. Red 3s are laid aside and replaced immediately after the deal, and score in the team's red 3s row; black 3s can only be melded when going out.</p>
+  <p class="dim">A team may have only one meld of each rank, so matching cards are added to it. Click a team meld to add staged cards to it. Your team's first meld must reach the threshold shown in the status line, unless you meld your whole hand with a Canasta. The discard pile may be frozen or blocked — the game will say which. A wild card or red three anywhere in the pile freezes it, even after later cards cover it.</p>
+  <p class="dim">Melds show coloured ranks, with jokers as stars and wildcards on the right. A canasta of seven or more cards shows a count. Taking the pile uses the cards it needs from your hand: two matching naturals, or one match and a wild unless the pile is frozen. It can also add the top card to your team's matching meld. Stage cards to choose them yourself.</p>
   <p class="dim">Press any key to close</p>
 </div></div>
 
@@ -563,6 +563,7 @@ let aiTimer = 0, aiPlan = [], betweenTimer = 0, needsDeal = true;
 let pendingPrompt = null, logLines = [];
 let lastRoundDetail = '';
 let startSeat = 0, dealReveal = 0, dealTimer = 0;
+let dealRedThrees = [0, 0, 0, 0];
 let pendingMeld = null, scorecardData = null;
 const DEAL_STEP = 0.18, AI_STEP = 0.8, MELD_HOLD = 0.9;
 
@@ -787,10 +788,12 @@ function renderStatus() {
   else if (phase === 'draw') {
     const blocked = top && (top.wild || top.redThree || top.blackThree);
     const frozen = !meldedThisRound[0] || discard.some(card => card.wild || card.redThree);
-    const pile = blocked ? ' Blocked.' : frozen ? ' Frozen.' : '';
+    const pile = blocked ? ' Pile blocked.'
+      : frozen ? (meldedThisRound[0] ? ' Pile frozen (wild/red 3 in it).' : ' Pile frozen until your team melds.')
+      : '';
     if (!stock.length) {
       text = top && !blocked
-        ? 'Stock empty: T takes the pile, or D ends the hand.'
+        ? `Stock empty: T takes the pile, or D ends the hand.${pile}`
         : 'Stock empty: D ends the hand.';
     } else {
       text = `Your turn: D draws; T takes the discard pile.${pile}`;
@@ -1015,7 +1018,11 @@ function humanTake() {
   const team = 0;
   const stagedCards = hands[0].filter(card => staged.has(card.id));
   const stagedIds = new Set(stagedCards.map(card => card.id));
-  const frozen = !meldedThisRound[team] || discard.some(card => card.wild || card.redThree);
+  const teamMelded = meldedThisRound[team];
+  const frozen = !teamMelded || discard.some(card => card.wild || card.redThree);
+  const frozenBecause = !teamMelded
+    ? 'your team has not melded yet'
+    : 'the pile contains a wild card or red three';
 
   const evaluate = cards => {
     const promised = [top, ...cards];
@@ -1033,28 +1040,36 @@ function humanTake() {
     return { ok: check.ok, check, promised, target, frozenWild: false };
   };
 
-  // If the player has not staged the two cards the pile needs, use matching
-  // natural cards from the hand. Taking the pile is the player's intent here.
+  // Taking the pile is the player's intent, so if they have not staged enough
+  // cards, use what the hand can supply: matching naturals first, then one
+  // wild card for an unfrozen pile (one match plus a wild is a valid meld).
+  // The top card may also be laid off alone on an existing meld of its rank.
   let usedCards = stagedCards.slice();
   let attempt = evaluate(usedCards);
   if (!attempt.ok) {
     const naturalCount = usedCards.filter(card => !card.wild && card.rank === top.rank).length;
-    const candidates = hands[0].filter(card => !stagedIds.has(card.id)
+    const matching = hands[0].filter(card => !stagedIds.has(card.id)
       && !card.wild && !card.redThree && card.rank === top.rank);
-    const need = Math.max(0, 2 - naturalCount);
-    for (let i = 0; i < Math.min(need, candidates.length); i++) {
-      usedCards = usedCards.concat(candidates[i]);
+    const wilds = frozen ? [] : hands[0]
+      .filter(card => !stagedIds.has(card.id) && card.wild)
+      .sort((a, b) => a.meldValue - b.meldValue);
+    const fill = matching.slice(0, Math.max(0, 2 - naturalCount)).concat(wilds.slice(0, 1));
+    for (const card of fill) {
+      usedCards = usedCards.concat(card);
       attempt = evaluate(usedCards);
       if (attempt.ok) break;
     }
   }
   if (!attempt.ok) {
-    if (attempt.frozenWild) return notify('The pile is frozen: the promised meld must be natural, with no wild cards.', 'warn');
-    const hint = frozen
-      ? `To take the ${rankLabel(top.rank)}, stage two natural cards of that rank from your hand.`
-      : `To take the ${rankLabel(top.rank)}, stage two natural cards of that rank from your hand (or one of that rank and a wild).`;
+    const rank = rankLabel(top.rank);
+    if (attempt.frozenWild) {
+      return notify(`The pile is frozen (${frozenBecause}), so wild cards cannot be used to take it. Unstage the wild and use two natural ${rank}s instead.`, 'warn');
+    }
+    if (frozen) {
+      return notify(`The pile is frozen because ${frozenBecause}. To take the ${rank}, you need two natural ${rank}s in your hand${sameRankMeld(team, [top]) ? ' to add with it to your matching meld' : ''}.`, 'warn');
+    }
     if (/at least three cards|at least two natural/.test(attempt.check.reason)) {
-      return notify(`You cannot take that pile. ${hint}`, 'warn');
+      return notify(`You cannot take that pile. To take the ${rank}, you need two natural ${rank}s in your hand, or one ${rank} and a wild card.`, 'warn');
     }
     return notify(`You cannot take that pile: ${attempt.check.reason}`, 'warn');
   }
@@ -1154,12 +1169,6 @@ function startTurn(seat) {
   staged.clear();
   aiPlan = [];
   aiTimer = AI_STEP;
-  const red = layAsideRedThrees(seat, { replace: true });
-  if (red.count) {
-    const who = seat === 0 ? 'You' : SEATS[seat].name;
-    const theirs = seat === 0 ? 'your' : 'their';
-    notify(`${who} ${seat === 0 ? 'turn' : 'turns'} up ${red.count} red three${red.count > 1 ? 's' : ''}; ${red.count > 1 ? 'they go' : 'it goes'} to ${theirs} red 3s.`);
-  }
   render();
 }
 
@@ -1185,6 +1194,12 @@ function dealRound() {
     sortHand(hands[seat]);
   }
   stock = deck;
+  // Red threes are laid aside and replaced immediately after the deal, before
+  // the upcard is turned and before anyone draws.
+  dealRedThrees = [0, 0, 0, 0];
+  for (let seat = 0; seat < 4; seat++) {
+    dealRedThrees[seat] = layAsideRedThrees(seat, { replace: true }).count;
+  }
   dealReveal = 0;
   dealTimer = 0.25;
   pendingMeld = null;
@@ -1207,7 +1222,11 @@ function finishDeal() {
   if (first) discard.push(first);
   cursorId = hands[0].length ? hands[0][hands[0].length - 1].id : null;
   dealReveal = 11;
-  notify(`Round ${roundNo}: first meld needs ${threshold(0)} points for your team.`);
+  const redSummary = dealRedThrees
+    .map((count, seat) => count ? `${seat === 0 ? 'you' : SEATS[seat].name} ${count}` : '')
+    .filter(Boolean);
+  notify(`Round ${roundNo}: first meld needs ${threshold(0)} points for your team.`
+    + (redSummary.length ? ` Red 3s turned up: ${redSummary.join(', ')}.` : ''));
   const firstSeat = startSeat;
   startSeat = (startSeat + 1) % 4;
   startTurn(firstSeat);
@@ -1741,6 +1760,7 @@ function reset() {
   discard = [];
   melds = [];
   redThrees = [[], []];
+  dealRedThrees = [0, 0, 0, 0];
   staged.clear();
   cursorId = null;
   phase = 'draw';

@@ -31,9 +31,9 @@ Click any of your team's melds to add the staged cards to it.
 
 This is the Classic Canasta variant: two decks plus four jokers, partnerships, 11-card hands, first-meld thresholds, frozen and blocked piles, red-three bonuses, Canastas, going out, and play to 5,000 points. The game explains illegal moves such as blocked pile pickups, insufficient first melds, invalid meld composition, and discarding a card that could be laid off.
 
-Melds show coloured ranks, with jokers as stars and wildcards on the right; a canasta of seven or more cards shows a count. Taking the discard pile automatically uses two matching natural cards from your hand; stage a wild or extra cards to include them. The stock and discard piles sit in the middle of the table and show only their cards — no counts — so you have to keep track, as at a real table.
+Melds show coloured ranks, with jokers as stars and wildcards on the right; a canasta of seven or more cards shows a count. Taking the discard pile automatically uses the cards it needs from your hand — two matching natural cards, or one match and a wild when the pile is not frozen — and can add the top card to your team's matching meld. Stage cards first to choose them yourself. The stock and discard piles sit in the middle of the table and show only their cards — no counts — so you have to keep track, as at a real table.
 
-The left score table shows each team's total and first-meld threshold. A scorecard appears after every hand with the full scoring breakdown; close it to deal the next hand. Red 3s show as red 3s in the team row, and the opening deal and opponent melds are animated. The first hand starts with a random player, and the turn rotates after each hand.
+The left score table shows each team's total and first-meld threshold. A scorecard appears after every hand with the full scoring breakdown; close it to deal the next hand. Red 3s are laid aside and replaced immediately after the deal and show in the team row, and the opening deal and opponent melds are animated. The first hand starts with a random player, and the turn rotates after each hand.
 
 ![Hand scorecard](screenshot-scorecard.png)
 
