@@ -16,12 +16,14 @@ The repo name normalizes to the installed game name `canasta`.
 - `Space` / `Enter`: stage or unstage a card
 - `D`: draw from the stock
 - `T`: take the discard pile
-- `F`: meld or lay off staged cards
-- `X`: discard the selected card
-- `O`: ask your partner for permission to go out
+- `F`: meld staged cards, or add them to your team's matching meld
+- `X`: discard the selected card (the button names it)
+- `O`: go out (meld the rest, or all but one and discard)
 - `V`: sort your hand · `C`: clear staged cards
 - `Esc` / `P`: pause · `Q`: back to Game Vibes
 - `?`: help
+
+Click any of your team's melds to add the staged cards to it.
 
 ## Rules
 

@@ -37,8 +37,9 @@
   #melds { flex: 1; overflow: auto; display: flex; flex-wrap: wrap; gap: 10px 16px; align-content: flex-start; justify-content: center; padding: 6px; border: 1px dashed color-mix(in srgb, var(--foreground) 22%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 40%, transparent); }
   .team-melds { display: flex; flex-direction: column; gap: 5px; min-width: 120px; padding: 5px 8px; border-radius: 8px; background: color-mix(in srgb, var(--background) 42%, transparent); }
   .team-label { font-size: 11px; color: color-mix(in srgb, var(--foreground) 74%, var(--background)); }
-  .meld-row { display: flex; gap: 2px; align-items: center; }
+  .meld-row { display: flex; gap: 2px; align-items: center; pointer-events: auto; border-radius: 6px; }
   .meld-row.canasta { outline: 1px solid var(--yellow); border-radius: 6px; padding: 2px; }
+  .meld-row.target { outline: 2px solid var(--accent); outline-offset: 2px; cursor: pointer; background: color-mix(in srgb, var(--accent) 14%, transparent); }
   #stock-pile { display: flex; justify-content: center; align-items: center; gap: 22px; min-height: 84px; }
   .pile-button { pointer-events: auto; }
   .pile-label { display: block; font-size: 11px; text-align: center; color: color-mix(in srgb, var(--foreground) 72%, var(--background)); margin-top: 2px; }
@@ -175,7 +176,7 @@
   <h1>CANASTA</h1>
   <p>Classic four-handed partnership Canasta. Beat 5,000 points with your partner.</p>
   <p>Rules explain every rejected move — if you cannot do something, the game tells you why.</p>
-  <p><span class="key">←</span> <span class="key">→</span> choose cards · <span class="key">Space</span> stage · <span class="key">F</span> meld · <span class="key">X</span> discard</p>
+  <p><span class="key">←</span> <span class="key">→</span> choose cards · <span class="key">Space</span> stage · <span class="key">F</span> meld or lay off · <span class="key">X</span> discard</p>
   <p class="dim">Space to deal · ? for all controls and rules</p>
 </div></div>
 
@@ -199,15 +200,15 @@
     <tr><td class="key">Space / Enter</td><td>Stage or unstage the card under the cursor</td></tr>
     <tr><td class="key">D</td><td>Draw from the stock</td></tr>
     <tr><td class="key">T</td><td>Take the discard pile</td></tr>
-    <tr><td class="key">F</td><td>Meld or lay off staged cards</td></tr>
+    <tr><td class="key">F</td><td>Meld staged cards, or add them to your team's matching meld</td></tr>
     <tr><td class="key">X</td><td>Discard the selected card</td></tr>
-    <tr><td class="key">O</td><td>Ask your partner to go out</td></tr>
+    <tr><td class="key">O</td><td>Go out (meld the rest, or all but one and discard)</td></tr>
     <tr><td class="key">V / C</td><td>Sort hand / clear staged cards</td></tr>
     <tr><td class="key">Esc / P</td><td>Pause, resume, back to all games</td></tr>
     <tr><td class="key">M / ?</td><td>Sound on or off / this help</td></tr>
   </table>
-  <p class="dim">Make melds of 3+ equal cards. At least two must be natural, and no more than three wild cards (2s and Jokers). Seven cards make a Canasta. Red 3s are laid aside for bonus points; black 3s can only be melded when going out.</p>
-  <p class="dim">Your team's first meld must reach the threshold shown in the status line. The discard pile may be frozen or blocked — the game will say which.</p>
+  <p class="dim">Make melds of 3+ equal cards. At least two must be natural, and a meld can contain at most three wild cards (2s and Jokers). Seven cards make a Canasta. Red 3s are laid aside automatically for bonus points; black 3s can only be melded when going out.</p>
+  <p class="dim">A team may have only one meld of each rank, so matching cards are added to it. Click a team meld to add staged cards to it. Your team's first meld must reach the threshold shown in the status line, unless you meld your whole hand with a Canasta. The discard pile may be frozen or blocked — the game will say which.</p>
   <p class="dim">Press any key to close</p>
 </div></div>
 
@@ -423,13 +424,18 @@ const SUIT_CLASS = ['spade', 'heart', 'diamond', 'club'];
 const RANK_LABEL = { 0: 'W', 11: 'J', 12: 'Q', 13: 'K', 14: 'A', 15: '2' };
 
 const teamOf = seat => (seat === 0 || seat === 2 ? 0 : 1);
-const partnerOf = seat => (seat + 2) % 4;
 const rankLabel = rank => RANK_LABEL[rank] ?? String(rank);
 
 function cardName(card) {
   if (card.wild && card.rank === 0) return 'a Joker';
   if (card.wild) return 'a 2';
   return `${rankLabel(card.rank)} of ${SUIT_CLASS[card.suit]}`;
+}
+
+const SUIT_SYMBOL = ['♠', '♥', '♦', '♣'];
+function shortCard(card) {
+  if (card.rank === 0) return 'Joker';
+  return `${rankLabel(card.rank)}${SUIT_SYMBOL[card.suit]}`;
 }
 
 function makeCard(rank, suit, id) {
@@ -482,6 +488,9 @@ let totals = [0, 0], roundNo = 1;
 let turn = 0, phase = 'draw', firstMeldTurn = true;
 let turnMeldValue = 0, turnActions = 0;
 let meldedThisRound = [false, false];
+let meldedBy = [false, false, false, false];
+let meldedThisTurn = [false, false, false, false];
+let turnLayoff = false;
 let staged = new Set(), cursorId = null;
 let aiTimer = 0, aiPlan = [], betweenTimer = 0, needsDeal = true;
 let pendingPrompt = null, logLines = [];
@@ -490,13 +499,46 @@ let lastRoundDetail = '';
 function threshold(team) {
   const total = totals[team];
   if (total < 0) return 15;
-  if (total <= 1500) return 50;
-  if (total <= 3000) return 90;
+  if (total < 1500) return 50;
+  if (total < 3000) return 90;
   return 120;
 }
 
-function handValue(seat) {
-  return hands[seat].reduce((sum, card) => sum + (card.redThree ? 100 : card.meldValue), 0);
+// Red threes are bonus cards: laid face up as soon as they reach a hand, and
+// replaced from the stock when they were drawn (but not when taken from the pile).
+function layAsideRedThrees(seat, { replace = true } = {}) {
+  const team = teamOf(seat);
+  let count = 0, exhausted = false;
+  for (;;) {
+    const index = hands[seat].findIndex(card => card.redThree);
+    if (index < 0) break;
+    const [red] = hands[seat].splice(index, 1);
+    redThrees[team].push(red);
+    count++;
+    if (replace) {
+      if (stock.length) hands[seat].push(stock.pop());
+      else exhausted = true;
+    }
+  }
+  if (count) sortHand(hands[seat]);
+  return { count, exhausted };
+}
+
+// Draw through red threes, laying each aside and replacing it. Returns the card
+// actually added to the hand, or exhausted when the stock ran out first.
+function drawFromStock(seat) {
+  if (!stock.length) return { empty: true, reds: 0, card: null, exhausted: false };
+  let reds = 0, card = null;
+  while (stock.length) {
+    card = stock.pop();
+    if (!card.redThree) break;
+    redThrees[teamOf(seat)].push(card);
+    reds++;
+    card = null;
+  }
+  if (card) hands[seat].push(card);
+  sortHand(hands[seat]);
+  return { empty: false, reds, card, exhausted: !card };
 }
 
 function hasCanasta(team) {
@@ -611,12 +653,17 @@ function renderSeats() {
 }
 
 function renderMelds() {
+  const stagedCards = turn === 0 && phase === 'play' ? hands[0].filter(card => staged.has(card.id)) : [];
+  const targets = stagedCards.length ? layoffTargets(0, stagedCards) : [];
   let html = '';
   for (const team of [0, 1]) {
-    const rows = melds.filter(meld => meld.team === team).map(meld => {
-      const cards = meld.cards.map(card => cardHTML(card, 'mini')).join('');
-      return `<div class="meld-row ${meld.cards.length >= 7 ? 'canasta' : ''}">${cards}</div>`;
-    }).join('');
+    const rows = melds.map((meld, index) => ({ meld, index }))
+      .filter(({ meld }) => meld.team === team)
+      .map(({ meld, index }) => {
+        const cards = meld.cards.map(card => cardHTML(card, 'mini')).join('');
+        const isTarget = targets.includes(meld);
+        return `<div class="meld-row ${meld.cards.length >= 7 ? 'canasta' : ''} ${isTarget ? 'target' : ''}" data-meld="${index}"${isTarget ? ' title="Click to add your staged cards here"' : ''}>${cards}</div>`;
+      }).join('');
     const red = redThrees[team].length ? `<div class="team-label">Red 3s: ${redThrees[team].length}</div>` : '';
     html += `<div class="team-melds"><div class="team-label">${team === 0 ? 'YOU + BILL' : 'MIKE + LISA'}</div>${rows || '<div class="team-label">no melds</div>'}${red}</div>`;
   }
@@ -650,17 +697,30 @@ function renderStatus() {
     const blocked = top && (top.wild || top.redThree || top.blackThree);
     const frozen = !meldedThisRound[0] || discard.some(card => card.wild || card.redThree);
     const pile = blocked ? ' The pile is blocked.' : frozen ? ' The pile is frozen.' : '';
-    text = `Your turn: draw from the stock, or take the discard pile.${pile}`;
+    if (!stock.length) {
+      text = top && !blocked
+        ? 'The stock is empty: take the discard pile, or draw to end the hand.'
+        : 'The stock is empty: draw to end the hand.';
+    } else {
+      text = `Your turn: draw from the stock, or take the discard pile.${pile}`;
+    }
   }
   else if (firstMeldTurn && !meldedThisRound[0]) text = `First meld: you need ${threshold(0)} points. You have melded ${turnMeldValue} so far.`;
-  else text = 'Meld or lay off, then discard one card.';
+  else {
+    const stagedCards = hands[0].filter(card => staged.has(card.id));
+    if (stagedCards.length === 1) text = `Staged ${cardName(stagedCards[0])}. F melds or lays it off; X discards it.`;
+    else if (stagedCards.length > 1) text = `Staged ${stagedCards.length} cards. F melds or lays them off.`;
+    else text = 'Meld or lay off, then discard one card.';
+  }
   $('status').textContent = text;
 }
 
 function renderControls() {
   const humanTurn = state === 'playing' && turn === 0 && phase !== 'between';
+  const stagedCards = hands[0].filter(card => staged.has(card.id));
   $('btn-meld').disabled = !humanTurn || phase !== 'play' || !staged.size;
   $('btn-discard').disabled = !humanTurn || phase !== 'play';
+  $('btn-discard').textContent = stagedCards.length === 1 ? `Discard ${shortCard(stagedCards[0])} · X` : 'Discard · X';
   $('btn-out').disabled = !humanTurn || phase !== 'play';
   $('btn-sort').disabled = !humanTurn;
   $('btn-clear').disabled = !humanTurn || !staged.size;
@@ -697,7 +757,6 @@ function validateMeld(cards, { layoff = false, allowBlackThree = false } = {}) {
   if (naturals.some(card => card.rank !== rank)) return { ok: false, reason: 'The natural cards in a meld must all be the same rank.' };
   if (naturals.length < 2) return { ok: false, reason: 'A meld needs at least two natural cards of the same rank.' };
   if (wilds.length > 3) return { ok: false, reason: 'A meld can contain at most three wild cards.' };
-  if (wilds.length >= naturals.length) return { ok: false, reason: 'A meld must have more natural cards than wild cards.' };
   if (cards.length > 11) return { ok: false, reason: 'A meld can hold at most eleven cards.' };
   return {
     ok: true,
@@ -718,9 +777,21 @@ function layoffTargets(team, cards, options = {}) {
   return melds.filter(meld => meld.team === team && validateLayoff(meld, cards, options).ok);
 }
 
+// A partnership may only have one meld of a rank. Cards of an existing meld's
+// rank are added to it rather than starting a second meld.
+function sameRankMeld(team, cards) {
+  const natural = cards.find(card => !card.wild && !card.blackThree);
+  if (!natural) return null;
+  return melds.find(meld => meld.team === team
+    && !meld.cards.some(card => card.blackThree)
+    && meld.cards.some(card => !card.wild && card.rank === natural.rank)) ?? null;
+}
+
 function mergeMelds(team) {
-  for (let rank = 4; rank <= 15; rank++) {
-    const same = melds.filter(meld => meld.team === team && !meld.cards.some(card => card.blackThree) && meld.cards.some(card => card.rank === rank));
+  for (let rank = 4; rank <= 14; rank++) {
+    const same = melds.filter(meld => meld.team === team
+      && !meld.cards.some(card => card.blackThree)
+      && meld.cards.some(card => !card.wild && card.rank === rank));
     if (same.length < 2) continue;
     const combined = same.flatMap(meld => meld.cards);
     if (combined.length > 11 || !validateMeld(combined).ok) continue;
@@ -733,10 +804,15 @@ function mergeMelds(team) {
 function commitMeld(seat, cards, target = null, options = {}) {
   const team = teamOf(seat);
   const pointsBefore = cards.reduce((sum, card) => sum + card.meldValue, 0);
-  if (!options.force && hands[seat].length - cards.length <= 1 && !hasCanasta(team) && cards.length < 7) {
+  if (!target) target = sameRankMeld(team, cards);
+  const canastaAfter = hasCanasta(team)
+    || (target ? target.cards.length + cards.length >= 7 : cards.length >= 7);
+  const handAfter = hands[seat].length - cards.length;
+  const goingOut = handAfter <= 1 && canastaAfter;
+  if (!options.force && handAfter <= 1 && !canastaAfter) {
     return { ok: false, reason: 'You cannot leave yourself with fewer than two cards unless your team has a Canasta.' };
   }
-  if (firstMeldTurn && !meldedThisRound[team] && !options.force) {
+  if (firstMeldTurn && turnMeldValue < threshold(team) && !goingOut && !options.force) {
     const projected = turnMeldValue + pointsBefore;
     const need = threshold(team);
     if (projected < need) {
@@ -751,6 +827,7 @@ function commitMeld(seat, cards, target = null, options = {}) {
     const check = validateLayoff(target, cards, { allowBlackThree: options.force });
     if (!check.ok) return check;
     target.cards.push(...cards);
+    turnLayoff = true;
   } else {
     const check = validateMeld(cards, { allowBlackThree: options.force });
     if (!check.ok) return check;
@@ -763,6 +840,7 @@ function commitMeld(seat, cards, target = null, options = {}) {
   turnMeldValue += points;
   turnActions++;
   meldedThisRound[team] = true;
+  meldedThisTurn[seat] = true;
   for (const card of cards) staged.delete(card.id);
   if (!options.silent) {
     sound(checkTone(points), 0.1, 'triangle', checkTone(points) * 1.4, 0.1);
@@ -776,25 +854,58 @@ function checkTone(points) {
   return points >= 100 ? 880 : points >= 50 ? 720 : 560;
 }
 
-function humanMeld() {
+function humanMeld(targetIndex = null) {
   if (turn !== 0 || phase !== 'play') return notify('Draw or take the discard pile before melding.');
   const cards = hands[0].filter(card => staged.has(card.id));
   if (!cards.length) return notify('Stage some cards first: click them or press Space over them.');
-  const result = commitMeld(0, cards);
-  if (!result.ok) return notify(result.reason, 'warn');
-  staged.clear();
-  render();
+  if (targetIndex !== null) {
+    const chosen = melds[targetIndex];
+    if (!chosen || chosen.team !== 0) return notify("That is not one of your team's melds.", 'warn');
+    const check = validateLayoff(chosen, cards);
+    if (!check.ok) return notify(check.reason, 'warn');
+    const result = commitMeld(0, cards, chosen);
+    if (!result.ok) return notify(result.reason, 'warn');
+    staged.clear();
+    render();
+    return;
+  }
+  if (validateMeld(cards).ok) {
+    const result = commitMeld(0, cards);
+    if (!result.ok) return notify(result.reason, 'warn');
+    staged.clear();
+    render();
+    return;
+  }
+  const targets = layoffTargets(0, cards);
+  if (targets.length === 1) {
+    const result = commitMeld(0, cards, targets[0]);
+    if (!result.ok) return notify(result.reason, 'warn');
+    staged.clear();
+    render();
+    return;
+  }
+  if (targets.length > 1) {
+    return notify('Those cards can join more than one meld. Click the meld you want.', 'warn');
+  }
+  return notify(validateMeld(cards).reason, 'warn');
 }
 
 function humanDraw() {
   if (turn !== 0 || phase !== 'draw') return notify('You can only draw at the start of your turn.');
-  if (!stock.length) return finishRound(-1, false);
-  const card = stock.pop();
-  hands[0].push(card);
-  sortHand(hands[0]);
+  const result = drawFromStock(0);
+  if (result.empty) {
+    notify('The stock is empty, so the hand ends.');
+    return finishRound(-1, false);
+  }
+  if (result.exhausted) {
+    notify(`You drew ${result.reds > 1 ? 'red threes' : 'a red three'}; the stock is empty, so the hand ends.`);
+    return finishRound(-1, false);
+  }
   phase = 'play';
   sound(440, 0.06, 'square', 620, 0.08);
-  notify(`You drew ${cardName(card)}.`);
+  notify(result.reds
+    ? `You drew ${result.reds} red three${result.reds > 1 ? 's' : ''} and laid ${result.reds > 1 ? 'them' : 'it'} aside; you drew ${cardName(result.card)}.`
+    : `You drew ${cardName(result.card)}.`);
   render();
 }
 
@@ -810,23 +921,33 @@ function humanTake() {
   const stagedIds = new Set(stagedCards.map(card => card.id));
   const frozen = !meldedThisRound[team] || discard.some(card => card.wild || card.redThree);
   const promisedCards = [top, ...stagedCards];
+  const handAfterTake = hands[0].length - stagedCards.length + Math.max(0, discard.length - 1);
+  const bothMeld = sameRankMeld(team, promisedCards);
   let target = null, check;
   if (frozen) {
     check = validateMeld(promisedCards);
     if (!check.ok) return notify(`The pile is frozen against your team. ${check.reason}`, 'warn');
     if (!check.natural) return notify('The pile is frozen: the promised meld must be natural, with no wild cards.', 'warn');
+    target = bothMeld;
   } else {
-    target = layoffTargets(team, promisedCards)[0] ?? null;
-    check = target ? validateLayoff(target, promisedCards) : validateMeld(promisedCards);
-    if (!check.ok) return notify(`You cannot take that pile: ${check.reason}`, 'warn');
+    target = layoffTargets(team, promisedCards)[0] ?? bothMeld;
   }
+  check = target ? validateLayoff(target, promisedCards) : validateMeld(promisedCards);
+  if (!check.ok) return notify(`You cannot take that pile: ${check.reason}`, 'warn');
+  const canastaAfter = hasCanasta(team) || (target
+    ? target.cards.length + promisedCards.length >= 7
+    : promisedCards.length >= 7);
+  const goingOut = handAfterTake <= 1 && canastaAfter;
   const firstMeldPending = !meldedThisRound[team];
-  if (firstMeldPending && turnMeldValue + check.points < threshold(team)) {
+  if (firstMeldPending && turnMeldValue + check.points < threshold(team) && !goingOut) {
     const short = threshold(team) - turnMeldValue - check.points;
     const remaining = hands[0].filter(card => !stagedIds.has(card.id));
-    if (!check.canasta && !findInitialPlan(0, short, remaining)) {
+    if (!findInitialPlan(0, short, remaining)) {
       return notify(`That pile meld is ${formatScore(check.points)} points; your team still needs ${short} more for its first meld, and your other cards cannot make it up.`, 'warn');
     }
+  }
+  if (handAfterTake <= 1 && !canastaAfter) {
+    return notify('That would leave you with fewer than two cards without a Canasta.', 'warn');
   }
   hands[0] = hands[0].filter(card => !stagedIds.has(card.id));
   if (target) target.cards.push(...promisedCards);
@@ -835,45 +956,51 @@ function humanTake() {
     mergeMelds(team);
   }
   hands[0].push(...discard.slice(0, -1));
+  discard = [];
+  const reds = layAsideRedThrees(0, { replace: false }).count;
   sortHand(hands[0]);
-  discard = [top];
   staged.clear();
   meldedThisRound[team] = true;
+  meldedThisTurn[0] = true;
+  if (target) turnLayoff = true;
   turnMeldValue += check.points;
   phase = 'play';
   sound(700, 0.12, 'square', 1100, 0.12);
+  if (!hands[0].length && hasCanasta(team)) { finishRound(team, false); return; }
   const short = firstMeldPending ? Math.max(0, threshold(team) - turnMeldValue) : 0;
+  const redText = reds ? `, laying aside ${reds} red three${reds > 1 ? 's' : ''}` : '';
   notify(short
     ? `You took the pile. Meld ${formatScore(short)} more points this turn before discarding.`
-    : `You took the pile and ${target ? 'laid off' : 'melded'} ${cardName(top)}.`);
+    : `You took the pile and ${target ? 'added' : 'melded'} ${cardName(top)}${redText}.`);
   render();
 }
 
 function discardCard(seat, card, confirmed = false) {
   const team = teamOf(seat);
   if (phase !== 'play') return notify('Draw or take the pile first.');
-  if (firstMeldTurn && turnMeldValue > 0 && turnMeldValue < threshold(team)) {
+  if (card.redThree) return notify('Red threes are laid aside automatically; choose another card.', 'warn');
+  const lastCard = hands[seat].length === 1;
+  if (firstMeldTurn && turnMeldValue > 0 && turnMeldValue < threshold(team) && !(lastCard && hasCanasta(team))) {
     return notify(`You have started your first meld but only have ${turnMeldValue} of ${threshold(team)} points. Meld more before discarding.`, 'warn');
   }
   if (staged.size) return notify('Unstage your cards before discarding.', 'warn');
-  if (hands[seat].length === 1 && !hasCanasta(team)) {
+  if (lastCard && !hasCanasta(team)) {
     return notify('You cannot go out: your team has no Canasta yet.', 'warn');
   }
-  const lastCard = hands[seat].length === 1;
   const target = lastCard ? null : layoffTargets(team, [card])[0];
   if (target && !confirmed && seat === 0) {
     return askPrompt(
       `${cardName(card)} could be laid off on your team's ${rankLabel(target.cards[0].rank)} meld. Discard it anyway?`,
       () => discardCard(seat, card, true),
-      () => notify('Kept it. Choose a different card.'),
+      () => { staged.add(card.id); notify('Kept it. Choose a different card.'); render(); },
     );
   }
   hands[seat] = hands[seat].filter(item => item.id !== card.id);
   discard.push(card);
   sound(300, 0.05, 'square', 180, 0.06);
   notify(`${seat === 0 ? 'You' : SEATS[seat].name} discarded ${cardName(card)}.`);
+  meldedBy[seat] = meldedBy[seat] || meldedThisTurn[seat];
   if (lastCard) finishRound(team, false);
-  else if (!stock.length) finishRound(-1, false);
   else nextTurn();
 }
 
@@ -892,17 +1019,14 @@ function startTurn(seat) {
   firstMeldTurn = !meldedThisRound[teamOf(seat)];
   turnMeldValue = 0;
   turnActions = 0;
+  turnLayoff = false;
+  meldedThisTurn[seat] = false;
   staged.clear();
   aiPlan = [];
   aiTimer = 0.45;
-  const team = teamOf(seat);
-  const red = hands[seat].filter(card => card.redThree);
-  if (red.length) {
-    hands[seat] = hands[seat].filter(card => !card.redThree);
-    redThrees[team].push(...red);
-    for (let i = 0; i < red.length && stock.length; i++) hands[seat].push(stock.pop());
-    sortHand(hands[seat]);
-    notify(`${SEATS[seat].name} laid aside ${red.length} red three${red.length > 1 ? 's' : ''} for ${red.length * 100} bonus points.`);
+  const red = layAsideRedThrees(seat, { replace: true });
+  if (red.count) {
+    notify(`${SEATS[seat].name} laid aside ${red.count} red three${red.count > 1 ? 's' : ''} for ${red.count * 100} bonus points.`);
   }
   render();
 }
@@ -919,6 +1043,9 @@ function dealRound() {
   hands = [[], [], [], []];
   discard = [];
   meldedThisRound = [false, false];
+  meldedBy = [false, false, false, false];
+  meldedThisTurn = [false, false, false, false];
+  turnLayoff = false;
   const deck = makeDeck();
   shuffle(deck);
   for (let seat = 0; seat < 4; seat++) {
@@ -926,6 +1053,7 @@ function dealRound() {
     sortHand(hands[seat]);
   }
   stock = deck;
+  for (let seat = 0; seat < 4; seat++) layAsideRedThrees(seat, { replace: true });
   let first = stock.pop();
   while (first && (first.wild || first.redThree) && stock.length) {
     discard.push(first);
@@ -940,12 +1068,13 @@ function dealRound() {
 
 function finishRound(wentOutTeam, concealed) {
   if (phase === 'between') return;
+  for (let seat = 0; seat < 4; seat++) layAsideRedThrees(seat, { replace: false });
   const roundScores = [0, 0];
   const breakdown = [];
   for (const team of [0, 1]) {
     const meldPoints = melds.filter(meld => meld.team === team).flatMap(meld => meld.cards).reduce((sum, card) => sum + card.meldValue, 0);
     const handPoints = (team === 0 ? hands[0].concat(hands[2]) : hands[1].concat(hands[3]))
-      .reduce((sum, card) => sum + (card.redThree ? 100 : card.meldValue), 0);
+      .reduce((sum, card) => sum + card.meldValue, 0);
     const canastas = melds.filter(meld => meld.team === team && meld.cards.length >= 7);
     const natural = canastas.filter(meld => !meld.cards.some(card => card.wild)).length;
     const mixed = canastas.length - natural;
@@ -988,7 +1117,7 @@ function candidateGroups(cards, allowBlackThree = false) {
   for (const [rank, naturals] of byRank) {
     if (rank === 3 && naturals.some(card => card.blackThree)) continue;
     for (let count = naturals.length; count >= 2; count--) {
-      for (let wildCount = 0; wildCount <= Math.min(3, wilds.length, count - 1); wildCount++) {
+      for (let wildCount = 0; wildCount <= Math.min(3, wilds.length); wildCount++) {
         const group = naturals.slice(0, count).concat(wilds.slice(0, wildCount));
         if (validateMeld(group).ok) groups.push({ cards: group, newMeld: true, rank });
       }
@@ -1011,38 +1140,59 @@ function candidateGroups(cards, allowBlackThree = false) {
 
 function findInitialPlan(seat, need = threshold(teamOf(seat)), source = hands[seat]) {
   const team = teamOf(seat);
-  const available = source.slice();
-  const groups = candidateGroups(available);
+  const groups = candidateGroups(source);
+  const pointsOf = group => group.cards.reduce((sum, card) => sum + card.meldValue, 0);
+  groups.sort((a, b) => pointsOf(b) - pointsOf(a) || b.cards.length - a.cards.length);
   const chosen = [];
-  let points = 0;
   const used = new Set();
-  for (const group of groups) {
-    if (group.cards.some(card => used.has(card.id))) continue;
-    chosen.push(group);
-    points += group.cards.reduce((sum, card) => sum + card.meldValue, 0);
-    group.cards.forEach(card => used.add(card.id));
-    if (points >= need) break;
+  let nodes = 0;
+
+  function search(start, points) {
+    if (++nodes > 8000) return false;
+    if (points >= need) {
+      const left = source.length - used.size;
+      if (left >= 2 || hasCanasta(team) || chosen.some(group => group.cards.length >= 7)) return true;
+      return false;
+    }
+    for (let i = start; i < groups.length; i++) {
+      const group = groups[i];
+      if (group.cards.some(card => used.has(card.id))) continue;
+      if (group.rank !== 3 && chosen.some(other => other.rank === group.rank)) continue;
+      group.cards.forEach(card => used.add(card.id));
+      chosen.push(group);
+      if (search(i + 1, points + pointsOf(group))) return true;
+      chosen.pop();
+      group.cards.forEach(card => used.delete(card.id));
+    }
+    return false;
   }
-  if (points < need) return null;
-  if (source.length - used.size < 2 && !hasCanasta(team) && !chosen.some(group => group.cards.length >= 7)) return null;
+
+  if (!search(0, 0)) return null;
+  chosen.sort((a, b) => (b.cards.length >= 7) - (a.cards.length >= 7));
   return chosen.map(group => ({ kind: 'new', cards: group.cards }));
 }
 
 function findBestMeld(seat) {
   const team = teamOf(seat);
-  if (firstMeldTurn && !meldedThisRound[team]) {
-    const plan = findInitialPlan(seat);
+  if (firstMeldTurn && turnMeldValue < threshold(team)) {
+    const plan = findInitialPlan(seat, threshold(team) - turnMeldValue);
     return plan && plan.length ? plan : null;
   }
   for (const card of hands[seat]) {
     const target = layoffTargets(team, [card])[0];
-    if (target) return [{ kind: 'layoff', cards: [card], card, target }];
+    if (!target) continue;
+    const canastaAfter = hasCanasta(team) || target.cards.length + 1 >= 7;
+    if (hands[seat].length - 1 <= 1 && !canastaAfter) continue;
+    return [{ kind: 'layoff', cards: [card], card, target }];
   }
-  const groups = candidateGroups(hands[seat]);
-  const canastaGroup = groups.find(group => group.cards.length >= 7);
-  const best = canastaGroup ?? groups.find(group => group.cards.length >= 3 && group.cards.reduce((sum, card) => sum + card.meldValue, 0) >= 30);
+  const groups = candidateGroups(hands[seat]).filter(group => {
+    const same = sameRankMeld(team, group.cards);
+    if (same && !validateLayoff(same, group.cards).ok) return false;
+    const canastaAfter = hasCanasta(team) || (same ? same.cards.length + group.cards.length >= 7 : group.cards.length >= 7);
+    return hands[seat].length - group.cards.length > 1 || canastaAfter;
+  });
+  const best = groups.find(group => group.cards.length >= 7) ?? groups[0];
   if (!best) return null;
-  if (hands[seat].length - best.cards.length <= 1 && !hasCanasta(team) && best.cards.length < 7) return null;
   return [{ kind: 'new', cards: best.cards }];
 }
 
@@ -1052,6 +1202,7 @@ function findGoOutPlan(seat) {
   if (cards.length !== hands[seat].length) return null;
   const startMelds = melds.filter(meld => meld.team === team)
     .map((meld, id) => ({ id, cards: meld.cards.slice() }));
+  const priorIds = new Set(startMelds.map(meld => meld.id));
   let nextId = startMelds.length;
   const seen = new Set();
 
@@ -1067,11 +1218,11 @@ function findGoOutPlan(seat) {
       const discard = remaining[0] ?? null;
       const canasta = virtualMelds.some(meld => meld.cards.length >= 7);
       if (!canasta) return null;
-      const madeCanasta = actions.some(action => action.cards.length >= 7);
+      const madeCanasta = virtualMelds.some(meld => meld.cards.length >= 7 && !priorIds.has(meld.id));
       return {
         actions,
         discard,
-        concealed: !discard && !usedLayoff && turnActions === 0 && madeCanasta,
+        concealed: !discard && !usedLayoff && !meldedBy[seat] && !turnLayoff && madeCanasta,
       };
     }
 
@@ -1080,12 +1231,13 @@ function findGoOutPlan(seat) {
         if (!validateLayoff(meld, [card]).ok) continue;
         const copy = virtualMelds.map(item => item === meld ? { ...item, cards: item.cards.concat(card) } : item);
         const rest = remaining.filter(item => item.id !== card.id);
-        const plan = search(rest, copy, actions.concat({ kind: 'layoff', cards: [card], targetId: meld.id }), true, depth + 1);
+        const plan = search(rest, copy, actions.concat({ kind: 'layoff', cards: [card], targetId: meld.id }), usedLayoff || priorIds.has(meld.id), depth + 1);
         if (plan) return plan;
       }
     }
 
-    const groups = candidateGroups(remaining, true);
+    const groups = candidateGroups(remaining, true).filter(group =>
+      group.rank === 3 || !virtualMelds.some(meld => meld.cards.some(card => !card.wild && card.rank === group.rank)));
     for (const group of groups) {
       const id = nextId++;
       const copy = virtualMelds.concat({ id, cards: group.cards.slice() });
@@ -1122,52 +1274,32 @@ function applyGoOutPlan(seat, plan) {
   turnMeldValue += plan.actions.flatMap(action => action.cards)
     .reduce((sum, card) => sum + card.meldValue, 0);
   turnActions += plan.actions.length;
+  meldedThisTurn[seat] = true;
   staged.clear();
   mergeMelds(team);
   sound(1040, 0.25, 'triangle', 1560, 0.14);
   finishRound(team, plan.concealed);
 }
 
-function requestGoOutPermission(seat, callback) {
-  const partner = partnerOf(seat);
-  const team = teamOf(seat);
-  if (partner === 0) {
-    askPrompt(
-      `${SEATS[seat].name} wants to go out. Your partner is holding ${formatScore(handValue(partner))} points. Allow it?`,
-      () => { notify(`You gave ${SEATS[seat].name} permission to go out.`); callback(true); },
-      () => { notify(`You refused; ${SEATS[seat].name} cannot go out this turn.`); callback(false); },
-    );
-    return;
-  }
-  const partnerPoints = handValue(partner);
-  const allow = partnerPoints <= 15 || totals[team] + threshold(team) >= 5000;
-  notify(`${SEATS[partner].name} ${allow ? 'agrees' : 'says no'}: partner is holding ${formatScore(partnerPoints)} points.`);
-  callback(allow);
-}
-
 function attemptGoOut(seat) {
-  const team = teamOf(seat);
-  if (!hasCanasta(team)) {
-    if (seat === 0) notify('You cannot go out yet: your team needs a Canasta (a meld of seven or more cards).', 'warn');
-    return false;
-  }
   const plan = findGoOutPlan(seat);
   if (!plan) {
-    if (seat === 0) notify('You cannot go out yet: your hand cannot be fully melded or reduced to one discard.', 'warn');
+    if (seat === 0) notify('You cannot go out yet: you must meld all but one card (or all of them), including a Canasta.', 'warn');
     return false;
   }
-  const go = () => applyGoOutPlan(seat, plan);
-  if (turnActions > 0) { go(); return true; }
-  requestGoOutPermission(seat, allowed => {
-    if (allowed) go();
-    else { notify(`${SEATS[seat].name} was not allowed to go out this turn.`); render(); }
-  });
+  applyGoOutPlan(seat, plan);
   return true;
 }
 
 function humanGoOut() {
   if (turn !== 0 || phase !== 'play') return notify('Draw or take the pile first.');
-  attemptGoOut(0);
+  const plan = findGoOutPlan(0);
+  if (!plan) return attemptGoOut(0);
+  const melded = plan.actions.reduce((sum, action) => sum + action.cards.length, 0);
+  const tail = plan.discard ? `, then discard ${cardName(plan.discard)}` : ' with no discard';
+  askPrompt(`Go out now? Meld ${melded} card${melded === 1 ? '' : 's'}${tail}.`,
+    () => applyGoOutPlan(0, plan),
+    () => notify('Not going out.'));
 }
 
 function sortHumanHand() {
@@ -1177,7 +1309,8 @@ function sortHumanHand() {
 }
 
 function aiDiscard(seat) {
-  const cards = hands[seat].slice();
+  const cards = hands[seat].filter(card => !card.redThree);
+  if (!cards.length) return;
   let choice = cards[0];
   let bestKeep = Infinity;
   for (const card of cards) {
@@ -1209,12 +1342,15 @@ function aiStep() {
     if (canTake && humanTakeForAI(seat)) {
       // the pile was taken
     } else if (stock.length) {
-      const card = stock.pop();
-      hands[seat].push(card);
-      sortHand(hands[seat]);
-      phase = 'play';
-      notify(`${SEATS[seat].name} drew a card.`);
-      render();
+      const result = drawFromStock(seat);
+      if (result.empty || result.exhausted) {
+        if (result.reds) notify(`${SEATS[seat].name} drew ${result.reds > 1 ? 'red threes' : 'a red three'}; the stock is empty.`);
+        finishRound(-1, false);
+      } else {
+        phase = 'play';
+        notify(`${SEATS[seat].name} drew a card${result.reds ? ' and laid aside a red three' : ''}.`);
+        render();
+      }
     } else finishRound(-1, false);
     aiTimer = 0.45;
     return;
@@ -1222,7 +1358,7 @@ function aiStep() {
   if (aiPlan.length) {
     const action = aiPlan.shift();
     const result = commitMeld(seat, action.cards, action.target ?? null);
-    if (!result.ok) aiPlan = [];
+    if (!result.ok) { console.warn('AI meld failed:', result.reason); aiPlan = []; }
     aiTimer = 0.45;
     render();
     return;
@@ -1232,14 +1368,12 @@ function aiStep() {
     aiPlan = plan.slice(1);
     const first = plan[0];
     const result = commitMeld(seat, first.cards, first.target ?? null);
-    if (!result.ok) aiPlan = [];
+    if (!result.ok) { console.warn('AI meld failed:', result.reason); aiPlan = []; }
     aiTimer = 0.45;
     render();
     return;
   }
-  if (hasCanasta(teamOf(seat)) && findGoOutPlan(seat)) {
-    if (attemptGoOut(seat)) { aiTimer = 0.45; return; }
-  }
+  if (attemptGoOut(seat)) { aiTimer = 0.45; return; }
   aiDiscard(seat);
   aiTimer = 0.45;
   render();
@@ -1250,32 +1384,47 @@ function humanTakeForAI(seat) {
   if (!top) return false;
   const team = teamOf(seat);
   const frozen = !meldedThisRound[team] || discard.some(card => card.wild || card.redThree);
-  const target = !frozen ? layoffTargets(team, [top])[0] : null;
-  const group = target ? null : candidateGroups([top, ...hands[seat]])
-    .find(item => item.cards.includes(top) && (!frozen || !item.cards.some(card => card.wild)));
-  if (!target && !group) return false;
+  let target = !frozen ? layoffTargets(team, [top])[0] : null;
+  let group = null;
+  if (!target) {
+    group = candidateGroups([top, ...hands[seat]])
+      .find(item => item.cards.includes(top) && (!frozen || !item.cards.some(card => card.wild)));
+    if (!group) return false;
+    target = sameRankMeld(team, group.cards);
+    if (target && !validateLayoff(target, group.cards).ok) return false;
+  }
+  const promisedCards = group ? group.cards : [top];
   const used = group ? group.cards.filter(card => card !== top) : [];
-  const promised = (group ? group.cards : [top]).reduce((sum, card) => sum + card.meldValue, 0);
-  if (!meldedThisRound[team] && promised < threshold(team)) {
+  const promised = promisedCards.reduce((sum, card) => sum + card.meldValue, 0);
+  const handAfterTake = hands[seat].length - used.length + Math.max(0, discard.length - 1);
+  const canastaAfter = hasCanasta(team) || (target
+    ? target.cards.length + promisedCards.length >= 7
+    : promisedCards.length >= 7);
+  const goingOut = handAfterTake <= 1 && canastaAfter;
+  if (!meldedThisRound[team] && promised < threshold(team) && !goingOut) {
     const usedIds = new Set(used.map(card => card.id));
     const source = hands[seat].filter(card => !usedIds.has(card.id));
-    const canasta = (group?.cards.length ?? 0) >= 7;
-    if (!canasta && !findInitialPlan(seat, threshold(team) - promised, source)) return false;
+    if (!findInitialPlan(seat, threshold(team) - promised, source)) return false;
   }
+  if (handAfterTake <= 1 && !canastaAfter) return false;
   const ids = new Set(used.map(card => card.id));
   hands[seat] = hands[seat].filter(card => !ids.has(card.id));
-  if (target) target.cards.push(top);
+  if (target) target.cards.push(...promisedCards);
   else {
-    melds.push({ team, cards: group.cards });
+    melds.push({ team, cards: promisedCards.slice() });
     mergeMelds(team);
   }
   hands[seat].push(...discard.slice(0, -1));
+  discard = [];
+  const reds = layAsideRedThrees(seat, { replace: false }).count;
   sortHand(hands[seat]);
-  discard = [top];
   meldedThisRound[team] = true;
+  meldedThisTurn[seat] = true;
+  if (target) turnLayoff = true;
   turnMeldValue += promised;
   phase = 'play';
-  notify(`${SEATS[seat].name} took the discard pile.`);
+  notify(`${SEATS[seat].name} took the discard pile${reds ? ` and laid aside ${reds} red three${reds > 1 ? 's' : ''}` : ''}.`);
+  if (!hands[seat].length && hasCanasta(team)) { finishRound(team, false); return true; }
   return true;
 }
 
@@ -1328,8 +1477,16 @@ function build() {
   });
   $('btn-draw-pile').addEventListener('click', humanDraw);
   $('btn-take-pile').addEventListener('click', humanTake);
-  $('btn-meld').addEventListener('click', humanMeld);
+  $('btn-meld').addEventListener('click', () => humanMeld());
   $('btn-discard').addEventListener('click', humanDiscard);
+  $('melds').addEventListener('click', event => {
+    const row = event.target.closest('.meld-row[data-meld]');
+    if (!row) return;
+    const index = Number(row.dataset.meld);
+    if (!melds[index] || melds[index].team !== 0) return;
+    if (turn !== 0 || phase !== 'play' || !staged.size) return;
+    humanMeld(index);
+  });
   $('btn-out').addEventListener('click', humanGoOut);
   $('btn-sort').addEventListener('click', sortHumanHand);
   $('btn-clear').addEventListener('click', clearStaged);
