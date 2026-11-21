@@ -32,23 +32,23 @@
   #partner-cards .card:first-child { margin-left: 0; }
   .seat.left, .seat.right { display: flex; flex-direction: column; justify-content: center; align-items: center; }
   #left-cards, #right-cards { display: flex; flex-direction: column; align-items: center; gap: 1px; }
-  #center { grid-column: 2; grid-row: 2; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
-  #status { align-self: center; max-width: 100%; box-sizing: border-box; padding: 4px 14px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); background: color-mix(in srgb, var(--background) 82%, transparent); text-align: center; font-size: 13px; line-height: 1.35; min-height: 20px; color: color-mix(in srgb, var(--foreground) 82%, var(--accent)); }
-  #melds { flex: 1; overflow: auto; display: flex; flex-wrap: wrap; gap: 10px 16px; align-content: flex-start; justify-content: center; padding: 6px; border: 1px dashed color-mix(in srgb, var(--foreground) 22%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 40%, transparent); }
-  .team-melds { display: flex; flex-direction: column; gap: 5px; min-width: 120px; padding: 5px 8px; border-radius: 8px; background: color-mix(in srgb, var(--background) 42%, transparent); }
-  .team-label { font-size: 11px; color: color-mix(in srgb, var(--foreground) 74%, var(--background)); }
-  .meld-row { display: flex; gap: 2px; align-items: center; pointer-events: auto; border-radius: 6px; }
+  #center { grid-column: 2; grid-row: 2; position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 0; }
+  #status { align-self: center; margin-top: auto; max-width: 100%; box-sizing: border-box; padding: 4px 14px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); background: color-mix(in srgb, var(--background) 82%, transparent); text-align: center; font-size: 13px; line-height: 1.35; min-height: 20px; color: color-mix(in srgb, var(--foreground) 82%, var(--accent)); }
+  #melds { flex: 0 0 auto; width: 100%; max-height: 146px; margin-top: 6px; overflow-y: auto; overflow-x: hidden; display: flex; flex-wrap: nowrap; gap: 6px 10px; align-content: flex-start; justify-content: center; padding: 0; border: none; border-radius: 0; background: none; }
+  .team-melds { flex: 1 1 0; min-width: 0; max-width: 49%; display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 4px 8px; padding: 5px 8px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); background: color-mix(in srgb, var(--background) 78%, transparent); }
+  .team-label { flex: 0 0 100%; font-size: 11px; color: color-mix(in srgb, var(--foreground) 74%, var(--background)); }
+  .meld-row { display: flex; flex: 0 0 auto; gap: 2px; align-items: center; pointer-events: auto; border-radius: 6px; }
   .meld-row.canasta { outline: 1px solid var(--yellow); border-radius: 6px; padding: 2px; }
   .meld-row.target { outline: 2px solid var(--accent); outline-offset: 2px; cursor: pointer; background: color-mix(in srgb, var(--accent) 14%, transparent); }
-  #stock-pile { display: flex; justify-content: center; align-items: center; gap: 22px; min-height: 84px; }
+  #stock-pile { position: absolute; left: 50%; top: 55%; transform: translate(-50%, -50%); display: flex; justify-content: center; align-items: center; gap: 22px; min-height: 84px; }
   .pile-button { pointer-events: auto; }
   .pile-label { display: block; font-size: 11px; text-align: center; color: color-mix(in srgb, var(--foreground) 72%, var(--background)); margin-top: 2px; }
 
   #hand-zone { grid-column: 1 / 3; grid-row: 3; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 80%, transparent); box-shadow: 0 6px 24px color-mix(in srgb, var(--background) 35%, transparent); padding: 6px; display: flex; flex-direction: column; min-width: 0; }
   #hand-label { font-size: 12px; margin-bottom: 4px; color: color-mix(in srgb, var(--foreground) 78%, var(--accent)); }
   #hand { display: flex; justify-content: center; align-items: flex-end; gap: 3px; overflow-x: auto; padding: 12px 4px 2px; min-height: 112px; }
-  #controls { grid-column: 3; grid-row: 3; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; align-content: start; pointer-events: auto; }
-  button.ui { font: inherit; font-size: 12px; padding: 7px 6px; color: var(--foreground); background: color-mix(in srgb, var(--background) 80%, var(--foreground)); border: 1px solid color-mix(in srgb, var(--foreground) 28%, transparent); border-radius: 7px; cursor: pointer; }
+  #controls { grid-column: 3; grid-row: 3; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; align-content: center; padding: 6px; border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 90%, transparent); box-shadow: 0 6px 24px color-mix(in srgb, var(--background) 35%, transparent); pointer-events: auto; }
+  button.ui { font: inherit; font-size: 11px; padding: 6px 5px; color: var(--foreground); background: color-mix(in srgb, var(--background) 86%, var(--foreground)); border: 1px solid color-mix(in srgb, var(--foreground) 28%, transparent); border-radius: 6px; cursor: pointer; }
   button.ui:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
   button.ui:disabled { opacity: 0.4; cursor: not-allowed; }
   button.ui.primary { border-color: var(--accent); color: var(--accent); }
@@ -105,6 +105,17 @@
   .card.pile .joker-rank { font-size: 6px; }
   .card.pile .joker-star { width: 28px; height: 28px; }
   .card.pile.back::after { inset: 5px; }
+  .card.meld { width: 38px; height: 55px; border-radius: 5px; cursor: pointer; }
+  .card.meld .corner.top { top: 2px; left: 3px; }
+  .card.meld .corner.bottom { bottom: 2px; right: 3px; }
+  .card.meld .rank { font-size: 11px; }
+  .card.meld .suit { width: 8px; height: 8px; }
+  .card.meld .centre { width: 21px; height: 21px; }
+  .card.meld .court { font-size: 20px; }
+  .card.meld .court-wrap .suit { width: 9px; height: 9px; }
+  .card.meld .joker-rank { font-size: 6px; }
+  .card.meld .joker-star { width: 25px; height: 25px; }
+  .meld-count { flex: 0 0 auto; min-width: 17px; text-align: right; font-size: 12px; font-weight: 700; color: var(--accent); }
 
   #message { position: fixed; left: 16px; bottom: 196px; max-width: min(390px, 40vw); z-index: 30; pointer-events: none; }
   #message-text { display: block; padding: 9px 12px; border-radius: 9px; font-size: 13px; line-height: 1.4; background: color-mix(in srgb, var(--background) 92%, transparent); border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent); }
@@ -134,13 +145,13 @@
 </div>
 
 <div id="table-ui">
-  <div class="seat left" id="seat-left"><span class="name">MIKE</span><span id="left-cards"></span></div>
-  <div class="seat top" id="seat-partner"><span class="name">BILL · PARTNER</span><span id="partner-cards"></span></div>
-  <div class="seat right" id="seat-right"><span class="name">LISA</span><span id="right-cards"></span></div>
+  <div class="seat left" id="seat-left"><span class="name">DICK</span><span id="left-cards"></span></div>
+  <div class="seat top" id="seat-partner"><span class="name">JAN · PARTNER</span><span id="partner-cards"></span></div>
+  <div class="seat right" id="seat-right"><span class="name">WENDY</span><span id="right-cards"></span></div>
 
   <div id="center">
-    <div id="status">Press Space to deal.</div>
     <div id="melds"></div>
+    <div id="status">Press Space to deal.</div>
     <div id="stock-pile">
       <button class="ui pile-button" id="btn-draw-pile" title="Draw from stock (D)"><span id="stock-card"></span><span class="pile-label" id="stock-label">Stock · D</span></button>
       <button class="ui pile-button" id="btn-take-pile" title="Take discard pile (T)"><span id="discard-card"></span><span class="pile-label" id="discard-label">Discard · T</span></button>
@@ -176,8 +187,8 @@
   <h1>CANASTA</h1>
   <p>Classic four-handed partnership Canasta. Beat 5,000 points with your partner.</p>
   <p>Rules explain every rejected move — if you cannot do something, the game tells you why.</p>
-  <p><span class="key">←</span> <span class="key">→</span> choose cards · <span class="key">Space</span> stage · <span class="key">F</span> meld or lay off · <span class="key">X</span> discard</p>
-  <p class="dim">Space to deal · ? for all controls and rules</p>
+  <p><span class="key">Space</span> = new game · <span class="key">?</span> for controls and rules</p>
+  <p class="dim">← → choose cards · F meld or lay off · X discard</p>
 </div></div>
 
 <div id="paused" class="screen"><div>
@@ -209,6 +220,7 @@
   </table>
   <p class="dim">Make melds of 3+ equal cards. At least two must be natural, and a meld can contain at most three wild cards (2s and Jokers). Seven cards make a Canasta. Red 3s are laid aside automatically for bonus points; black 3s can only be melded when going out.</p>
   <p class="dim">A team may have only one meld of each rank, so matching cards are added to it. Click a team meld to add staged cards to it. Your team's first meld must reach the threshold shown in the status line, unless you meld your whole hand with a Canasta. The discard pile may be frozen or blocked — the game will say which.</p>
+  <p class="dim">Melds show a multiplier and one card face; wild cards in mixed melds are shown separately.</p>
   <p class="dim">Press any key to close</p>
 </div></div>
 
@@ -416,9 +428,9 @@ let _helpFrom = 'title';
 // =============================================================================
 const SEATS = [
   { name: 'You', short: 'YOU' },
-  { name: 'Mike', short: 'MIKE' },
-  { name: 'Bill', short: 'BILL' },
-  { name: 'Lisa', short: 'LISA' },
+  { name: 'Dick', short: 'DICK' },
+  { name: 'Jan', short: 'JAN' },
+  { name: 'Wendy', short: 'WENDY' },
 ];
 const SUIT_CLASS = ['spade', 'heart', 'diamond', 'club'];
 const RANK_LABEL = { 0: 'W', 11: 'J', 12: 'Q', 13: 'K', 14: 'A', 15: '2' };
@@ -660,12 +672,18 @@ function renderMelds() {
     const rows = melds.map((meld, index) => ({ meld, index }))
       .filter(({ meld }) => meld.team === team)
       .map(({ meld, index }) => {
-        const cards = meld.cards.map(card => cardHTML(card, 'mini')).join('');
+        const naturals = meld.cards.filter(card => !card.wild);
+        const wilds = meld.cards.filter(card => card.wild);
+        const face = naturals[0];
+        const count = face
+          ? `<span class="meld-count" title="${naturals.length} × ${cardName(face)}">${naturals.length}×</span>`
+          : '';
+        const cards = `${count}${face ? cardHTML(face, 'meld') : ''}${wilds.map(card => cardHTML(card, 'meld')).join('')}`;
         const isTarget = targets.includes(meld);
         return `<div class="meld-row ${meld.cards.length >= 7 ? 'canasta' : ''} ${isTarget ? 'target' : ''}" data-meld="${index}"${isTarget ? ' title="Click to add your staged cards here"' : ''}>${cards}</div>`;
       }).join('');
-    const red = redThrees[team].length ? `<div class="team-label">Red 3s: ${redThrees[team].length}</div>` : '';
-    html += `<div class="team-melds"><div class="team-label">${team === 0 ? 'YOU + BILL' : 'MIKE + LISA'}</div>${rows || '<div class="team-label">no melds</div>'}${red}</div>`;
+    const red = redThrees[team].length ? ` · Red 3s: ${redThrees[team].length}` : '';
+    html += `<div class="team-melds"><div class="team-label">${team === 0 ? 'YOU + JAN' : 'DICK + WENDY'}${red}</div>${rows || '<div class="team-label">no melds</div>'}</div>`;
   }
   $('melds').innerHTML = html;
 }
@@ -691,7 +709,8 @@ function renderHand() {
 function renderStatus() {
   let text;
   const top = topCard();
-  if (phase === 'between') text = 'Next hand starts shortly…';
+  if (state === 'title' || state === 'won' || state === 'over') text = 'Press Space = new game.';
+  else if (phase === 'between') text = 'Next hand starts shortly…';
   else if (turn !== 0) text = `${SEATS[turn].name} is thinking…`;
   else if (phase === 'draw') {
     const blocked = top && (top.wild || top.redThree || top.blackThree);
@@ -1443,29 +1462,35 @@ function build() {
     shape.quadraticCurveTo(x, y, x + radius, y);
     return shape;
   };
-  const borderColor = new THREE.Color(PALETTE.accent).lerp(new THREE.Color(PALETTE.background), 0.72);
-  const feltColor = new THREE.Color(PALETTE.green).lerp(new THREE.Color(PALETTE.background), PALETTE.mode === 'light' ? 0.34 : 0.74);
-  const border = new THREE.Mesh(new THREE.ShapeGeometry(tableShape(24.78, 15.78, 2)), new THREE.MeshBasicMaterial({ color: borderColor }));
-  border.rotation.x = -Math.PI / 2;
-  scene.add(border);
-  const felt = new THREE.Mesh(new THREE.ShapeGeometry(tableShape(24.4, 15.4, 1.8)), new THREE.MeshBasicMaterial({ color: feltColor }));
+  const woodDark = new THREE.Color('#402b1b');
+  const woodRim = new THREE.Color('#6e4a2c');
+  const woodLine = new THREE.Color('#b98f5c');
+  const feltColor = new THREE.Color(PALETTE.mode === 'light' ? '#356b42' : '#47586d');
+  const outer = new THREE.Mesh(new THREE.ShapeGeometry(tableShape(22.7, 14.3, 2.2)), new THREE.MeshBasicMaterial({ color: woodDark }));
+  outer.rotation.x = -Math.PI / 2;
+  scene.add(outer);
+  const rim = new THREE.Mesh(new THREE.ShapeGeometry(tableShape(22.2, 13.8, 2.1)), new THREE.MeshBasicMaterial({ color: woodRim }));
+  rim.rotation.x = -Math.PI / 2;
+  rim.position.y = 0.005;
+  scene.add(rim);
+  const felt = new THREE.Mesh(new THREE.ShapeGeometry(tableShape(21.5, 13.1, 1.8)), new THREE.MeshBasicMaterial({ color: feltColor }));
   felt.rotation.x = -Math.PI / 2;
   felt.position.y = 0.01;
   scene.add(felt);
 
-  const inlayPoints = tableShape(23.2, 14.2, 1.75).getPoints(80)
+  const inlayPoints = tableShape(20.5, 12.1, 1.65).getPoints(80)
     .map(point => new THREE.Vector3(point.x, 0, point.y));
   const inlay = new THREE.LineLoop(
     new THREE.BufferGeometry().setFromPoints(inlayPoints),
-    new THREE.LineBasicMaterial({ color: borderColor, transparent: true, opacity: 0.5 }),
+    new THREE.LineBasicMaterial({ color: woodLine, transparent: true, opacity: 0.5 }),
   );
   inlay.rotation.x = -Math.PI / 2;
   inlay.position.y = 0.02;
   scene.add(inlay);
 
   const medallion = new THREE.Mesh(
-    new THREE.RingGeometry(2.8, 2.92, 64),
-    new THREE.MeshBasicMaterial({ color: borderColor, transparent: true, opacity: 0.2 }),
+    new THREE.RingGeometry(2.45, 2.57, 64),
+    new THREE.MeshBasicMaterial({ color: woodLine, transparent: true, opacity: 0.22 }),
   );
   medallion.rotation.x = -Math.PI / 2;
   medallion.position.y = 0.02;
@@ -1496,7 +1521,7 @@ function build() {
 }
 
 function resized() {
-  fitCamera(26, 17, { tilt: 1.12, target: [0, 0, 0] });
+  fitCamera(27.2, 17.8, { tilt: 1.12, target: [0, 0, 0] });
 }
 
 function reset() {
@@ -1522,7 +1547,7 @@ function reset() {
   hidePrompt();
   logLines = [];
   score = 0;
-  notify('Press Space to deal a new match.');
+  notify('Press Space = new game.');
   render();
 }
 
