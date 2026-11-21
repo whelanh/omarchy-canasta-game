@@ -81,6 +81,12 @@
   .pile-button:disabled { cursor: default; opacity: 0.55; }
   .pile-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .pile-button:hover:not(:disabled) .card { transform: translateY(-2px); }
+  .discard-stack { position: relative; width: 88px; height: 128px; display: flex; align-items: center; justify-content: center; }
+  .discard-top { position: relative; z-index: 2; }
+  .discard-frozen { position: absolute; left: 50%; top: 50%; z-index: 1; transform: translate(calc(-50% + 40px), -50%) rotate(-90deg); pointer-events: none; }
+  .discard-frozen .card { transform: none; pointer-events: none; cursor: default; }
+  #btn-take-pile:hover:not(:disabled) .discard-frozen .card { transform: none; }
+  .discard-frozen-count { position: absolute; right: -16px; bottom: 0; z-index: 3; padding: 1px 5px; border-radius: 999px; font-size: 10px; font-weight: 700; color: var(--accent); background: color-mix(in srgb, var(--background) 88%, var(--accent)); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); }
   #play-area { position: absolute; left: 50%; top: 50%; z-index: 6; display: flex; align-items: center; justify-content: center; gap: 2px; pointer-events: none; opacity: 0; }
   #play-area.show { opacity: 1; animation: meld-in .45s ease-out both; }
   #play-area .card { pointer-events: none; margin-left: -18px; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
@@ -286,7 +292,7 @@
   </table>
   <p class="dim values-note">Red 3s are bonus cards: 100 points each when your team has melded (800 for all four), or −100 each if it has not. They are not part of a meld. These values also count against a team for cards left in its hands.</p>
   <p class="dim">Make melds of 3+ equal cards. At least two must be natural, and a meld can contain at most three wild cards (2s and Jokers). Seven cards make a Canasta. Red 3s are laid aside and replaced immediately after the deal, and score in the team's red 3s row; black 3s can only be melded when going out.</p>
-  <p class="dim">A team may have only one meld of each rank, so matching cards are added to it. Click a team meld to add staged cards to it. Your team's first meld must reach the threshold shown in the status line, unless you meld your whole hand with a Canasta. The discard pile may be frozen or blocked — the game will say which. A wild card or red three anywhere in the pile freezes it, even after later cards cover it.</p>
+  <p class="dim">A team may have only one meld of each rank, so matching cards are added to it. Click a team meld to add staged cards to it. Your team's first meld must reach the threshold shown in the status line, unless you meld your whole hand with a Canasta. The discard pile may be frozen or blocked — the game will say which. A wild card or red three anywhere in the pile freezes it, even after later cards cover it; the freezing card is shown turned at right angles in the pile.</p>
   <p class="dim">Melds show coloured ranks, with jokers as stars and wildcards on the right. A canasta of seven or more cards shows a count. Taking the pile uses the cards it needs from your hand: two matching naturals, or one match and a wild unless the pile is frozen. It can also add the top card to your team's matching meld. Stage cards to choose them yourself.</p>
   <p class="dim">Press any key to close</p>
 </div></div>
@@ -526,6 +532,10 @@ const SUIT_SYMBOL = ['♠', '♥', '♦', '♣'];
 function shortCard(card) {
   if (card.rank === 0) return 'Joker';
   return `${rankLabel(card.rank)}${SUIT_SYMBOL[card.suit]}`;
+}
+
+function freezeName(card) {
+  return card.redThree ? `red ${shortCard(card)}` : cardName(card);
 }
 
 function makeCard(rank, suit, id) {
@@ -787,7 +797,20 @@ function renderMelds() {
 function renderPiles() {
   $('stock-card').innerHTML = stock.length ? '<div class="card back big"></div>' : '<span class="dim">—</span>';
   const top = topCard();
-  $('discard-card').innerHTML = top ? cardHTML(top, 'big') : '<span class="dim">—</span>';
+  const frozen = discard.filter(card => card.wild || card.redThree);
+  const buried = top ? discard.slice(0, -1).filter(card => card.wild || card.redThree) : [];
+  const marker = buried[buried.length - 1] ?? null;
+  const extra = Math.max(0, buried.length - 1);
+  $('discard-card').innerHTML = top
+    ? `<div class="discard-stack">`
+      + (marker ? `<div class="discard-frozen">${cardHTML(marker, 'big')}</div>` : '')
+      + `<div class="discard-top">${cardHTML(top, 'big')}</div>`
+      + (extra ? `<span class="discard-frozen-count" title="Frozen by ${buried.map(freezeName).join(', ')}">+${extra}</span>` : '')
+      + `</div>`
+    : '<span class="dim">—</span>';
+  const frozenText = frozen.length ? ` Frozen by ${frozen.map(freezeName).join(', ')}.` : '';
+  $('btn-take-pile').title = `Take discard pile (T).${frozenText}`;
+  $('btn-take-pile').setAttribute('aria-label', `Take discard pile.${frozenText}`);
   $('btn-draw-pile').disabled = state !== 'playing' || turn !== 0 || phase !== 'draw';
   $('btn-take-pile').disabled = state !== 'playing' || turn !== 0 || phase !== 'draw' || !top;
 }
@@ -810,10 +833,18 @@ function renderStatus() {
   else if (turn !== 0) text = `${SEATS[turn].name} is thinking…`;
   else if (phase === 'draw') {
     const blocked = top && (top.wild || top.redThree || top.blackThree);
-    const frozen = !meldedThisRound[0] || discard.some(card => card.wild || card.redThree);
+    const frozenCards = discard.filter(card => card.wild || card.redThree);
+    const frozen = !meldedThisRound[0] || frozenCards.length > 0;
+    const frozenNames = frozenCards.map(freezeName);
+    const frozenLabel = frozenNames.length > 3
+      ? `${frozenNames.slice(0, 3).join(', ')} +${frozenNames.length - 3}`
+      : frozenNames.join(', ');
     const pile = blocked ? ' Pile blocked.'
-      : frozen ? (meldedThisRound[0] ? ' Pile frozen (wild/red 3 in it).' : ' Pile frozen until your team melds.')
-      : '';
+      : frozen
+        ? (meldedThisRound[0]
+          ? (frozenLabel ? ` Pile frozen by ${frozenLabel}.` : ' Pile frozen.')
+          : ` Pile frozen until your team melds${frozenLabel ? ` (${frozenLabel} in the pile)` : ''}.`)
+        : '';
     if (!stock.length) {
       text = top && !blocked
         ? `Stock empty: T takes the pile, or D ends the hand.${pile}`
