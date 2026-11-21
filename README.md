@@ -31,4 +31,6 @@ This is the Classic Canasta variant: two decks plus four jokers, partnerships, 1
 
 Melds show coloured ranks, with jokers as stars and wildcards on the right; a canasta of seven or more cards shows a count. Taking the discard pile automatically uses two matching natural cards from your hand; stage a wild or extra cards to include them. The stock and discard piles sit in the middle of the table and show only their cards — no counts — so you have to keep track, as at a real table.
 
+The left score table shows each team's total and first-meld threshold. A scorecard appears after every hand with the full scoring breakdown; close it to deal the next hand. Red 3s show as red 3s in the team row, and the opening deal and opponent melds are animated. The first hand starts with a random player, and the turn rotates after each hand.
+
 No build step, modules, local assets, or `fetch()` calls are used; the game runs directly from `file://` as Game Vibes requires.

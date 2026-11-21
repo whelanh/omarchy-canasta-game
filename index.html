@@ -16,6 +16,16 @@
   .screen button, .screen [data-click] { pointer-events: auto; }
   .screen h1 { margin: 0 0 16px; font-size: 60px; letter-spacing: 4px; color: var(--accent); }
   .screen p { margin: 8px 0; font-size: 17px; }
+  #scorecard h1 { margin-bottom: 6px; font-size: 34px; letter-spacing: 2px; }
+  #scorecard-subtitle { margin: 0 0 8px; }
+  #scorecard-table { min-width: 460px; margin: 10px auto 0; border-collapse: collapse; font-size: 14px; }
+  #scorecard-table th, #scorecard-table td { padding: 4px 10px; text-align: right; white-space: nowrap; }
+  #scorecard-table th:first-child, #scorecard-table td:first-child { text-align: left; }
+  #scorecard-table thead th { color: var(--accent); font-weight: 600; }
+  #scorecard-table tbody tr + tr td { border-top: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent); }
+  #scorecard-table tr.total-row td { border-top: 1px solid color-mix(in srgb, var(--foreground) 30%, transparent); font-weight: 700; color: var(--foreground); }
+  #scorecard-table td.neg { color: var(--red); }
+  #scorecard-close { margin-top: 18px; }
   .key { color: var(--accent); }
   .dim { color: color-mix(in srgb, var(--foreground) 60%, var(--background)); }
   #help table { margin: 12px auto; border-spacing: 20px 6px; font-size: 16px; text-align: left; }
@@ -27,10 +37,17 @@
   .seat.top { grid-column: 2; grid-row: 1; width: 300px; justify-self: center; }
   .seat.left { grid-column: 1; grid-row: 2; width: 92px; justify-self: start; }
   .seat.right { grid-column: 3; grid-row: 2; width: 92px; justify-self: end; }
+  #scoreboard { grid-column: 1; grid-row: 1; width: 258px; box-sizing: border-box; padding: 6px 8px; border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 88%, transparent); box-shadow: 0 4px 18px color-mix(in srgb, var(--background) 45%, transparent); pointer-events: none; }
+  #scoreboard table { width: 100%; border-collapse: collapse; font-size: 11px; line-height: 1.45; }
+  #scoreboard th { color: color-mix(in srgb, var(--accent) 72%, var(--foreground)); font-weight: 600; text-align: right; padding: 1px 2px; white-space: nowrap; }
+  #scoreboard th:first-child, #scoreboard td:first-child { text-align: left; }
+  #scoreboard td { color: color-mix(in srgb, var(--foreground) 78%, var(--background)); text-align: right; padding: 1px 2px; }
+  #scoreboard td:first-child { color: color-mix(in srgb, var(--foreground) 62%, var(--background)); }
+  #scoreboard tbody tr + tr td { border-top: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent); }
   #partner-cards { display: flex; justify-content: center; align-items: center; min-height: 43px; }
   #partner-cards .card { margin-left: -10px; }
   #partner-cards .card:first-child { margin-left: 0; }
-  .seat.left, .seat.right { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .seat.left, .seat.right { display: flex; flex-direction: column; justify-content: flex-start; align-items: center; align-self: start; }
   #left-cards, #right-cards { display: flex; flex-direction: column; align-items: center; gap: 1px; }
   #center { grid-column: 2; grid-row: 2; position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 0; }
   #status { align-self: center; margin-top: auto; max-width: 100%; box-sizing: border-box; padding: 4px 14px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); background: color-mix(in srgb, var(--background) 92%, transparent); text-align: center; font-size: 13px; line-height: 1.35; min-height: 20px; color: color-mix(in srgb, var(--foreground) 82%, var(--accent)); }
@@ -45,11 +62,24 @@
   .meld-glyph.black { color: var(--foreground); }
   .meld-glyph.joker { color: var(--accent); font-size: 17px; }
   .meld-mult { display: inline-block; margin-right: 2px; font-size: 13px; font-weight: 700; color: var(--accent); }
-  #stock-pile { position: absolute; left: 50%; top: 55%; transform: translate(-50%, -50%); display: flex; justify-content: center; align-items: center; gap: 22px; min-height: 84px; }
+  .red-row { flex: 0 0 100%; display: flex; align-items: center; gap: 2px; padding: 1px 2px; }
+  .red-label { margin-right: 2px; font-size: 10px; color: color-mix(in srgb, var(--foreground) 60%, var(--background)); }
+  #stock-pile { position: absolute; left: 50%; top: 57%; transform: translate(-50%, -50%); display: flex; justify-content: center; align-items: center; gap: 26px; min-height: 128px; }
   .pile-button { all: unset; pointer-events: auto; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 7px; }
   .pile-button:disabled { cursor: default; opacity: 0.55; }
   .pile-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .pile-button:hover:not(:disabled) .card { transform: translateY(-2px); }
+  #play-area { position: absolute; left: 50%; top: 50%; z-index: 6; display: flex; align-items: center; justify-content: center; gap: 2px; pointer-events: none; opacity: 0; }
+  #play-area.show { opacity: 1; animation: meld-in .45s ease-out both; }
+  #play-area .card { pointer-events: none; margin-left: -18px; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
+  #play-area .card:first-child { margin-left: 0; }
+  #play-area.from-left { --sx: -240px; --sy: 10px; }
+  #play-area.from-top { --sx: 0px; --sy: -200px; }
+  #play-area.from-right { --sx: 240px; --sy: 10px; }
+  @keyframes meld-in {
+    from { opacity: 0; transform: translate(calc(-50% + var(--sx, 0px)), calc(-50% + var(--sy, 0px))) scale(.8); }
+    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  }
 
   #hand-zone { grid-column: 1 / 3; grid-row: 3; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 96%, transparent); box-shadow: 0 6px 24px color-mix(in srgb, var(--background) 35%, transparent); padding: 6px; display: flex; flex-direction: column; min-width: 0; }
   #hand-label { font-size: 12px; margin-bottom: 4px; color: color-mix(in srgb, var(--foreground) 78%, var(--accent)); }
@@ -101,6 +131,23 @@
   .card.tiny .corner { display: none; }
   .card.tiny .centre { width: 12px; height: 12px; }
   .card.tiny .joker-star { width: 14px; height: 14px; }
+  .card.big { width: 88px; height: 128px; border-radius: 10px; }
+  .card.big .corner.top { top: 6px; left: 7px; }
+  .card.big .corner.bottom { bottom: 6px; right: 7px; }
+  .card.big .rank { font-size: 22px; }
+  .card.big .suit { width: 15px; height: 15px; }
+  .card.big .centre { width: 46px; height: 46px; }
+  .card.big .court { font-size: 44px; }
+  .card.big .court-wrap .suit { width: 18px; height: 18px; }
+  .card.big .joker-rank { font-size: 10px; }
+  .card.big .joker-star { width: 52px; height: 52px; }
+  .card.big.back::before { width: 14px; height: 14px; }
+  .card.big.back::after { inset: 10px; }
+  .card.dealt { animation: deal-in .22s ease-out; }
+  @keyframes deal-in {
+    from { opacity: 0; transform: translateY(-18px) scale(.9); }
+    to { opacity: 1; transform: none; }
+  }
 
 
   #message { position: fixed; left: 16px; bottom: 196px; max-width: min(390px, 40vw); z-index: 30; pointer-events: none; }
@@ -131,6 +178,15 @@
 </div>
 
 <div id="table-ui">
+  <div id="scoreboard">
+    <table>
+      <thead><tr><th></th><th>You &amp; Jan</th><th>Dick &amp; Wendy</th></tr></thead>
+      <tbody>
+        <tr><td>Total Score</td><td id="score-us">0</td><td id="score-them">0</td></tr>
+        <tr><td>Threshold</td><td id="threshold-us">50</td><td id="threshold-them">50</td></tr>
+      </tbody>
+    </table>
+  </div>
   <div class="seat left" id="seat-left"><span class="name">DICK</span><span id="left-cards"></span></div>
   <div class="seat top" id="seat-partner"><span class="name">JAN · PARTNER</span><span id="partner-cards"></span></div>
   <div class="seat right" id="seat-right"><span class="name">WENDY</span><span id="right-cards"></span></div>
@@ -142,6 +198,7 @@
       <button class="pile-button" id="btn-draw-pile" title="Draw from stock (D)" aria-label="Draw from stock"><span id="stock-card"></span></button>
       <button class="pile-button" id="btn-take-pile" title="Take discard pile (T)" aria-label="Take discard pile"><span id="discard-card"></span></button>
     </div>
+    <div id="play-area"></div>
   </div>
 
   <div id="hand-zone">
@@ -204,10 +261,20 @@
     <tr><td class="key">Esc / P</td><td>Pause, resume, back to all games</td></tr>
     <tr><td class="key">M / ?</td><td>Sound on or off / this help</td></tr>
   </table>
-  <p class="dim">Make melds of 3+ equal cards. At least two must be natural, and a meld can contain at most three wild cards (2s and Jokers). Seven cards make a Canasta. Red 3s are laid aside automatically for bonus points; black 3s can only be melded when going out.</p>
+  <p class="dim">Make melds of 3+ equal cards. At least two must be natural, and a meld can contain at most three wild cards (2s and Jokers). Seven cards make a Canasta. Red 3s turn up in the team's red 3s row for bonus points; black 3s can only be melded when going out.</p>
   <p class="dim">A team may have only one meld of each rank, so matching cards are added to it. Click a team meld to add staged cards to it. Your team's first meld must reach the threshold shown in the status line, unless you meld your whole hand with a Canasta. The discard pile may be frozen or blocked — the game will say which.</p>
   <p class="dim">Melds show coloured ranks, with jokers as stars and wildcards on the right. A canasta of seven or more cards shows a count. Taking the pile uses two matching natural cards from your hand; stage a wild or extra cards to include them.</p>
   <p class="dim">Press any key to close</p>
+</div></div>
+
+<div id="scorecard" class="screen"><div>
+  <h1 id="scorecard-title">ROUND SCORE</h1>
+  <p id="scorecard-subtitle" class="dim"></p>
+  <table id="scorecard-table">
+    <thead><tr><th></th><th>You &amp; Jan</th><th>Dick &amp; Wendy</th></tr></thead>
+    <tbody id="scorecard-body"></tbody>
+  </table>
+  <button class="ui primary" id="scorecard-close">Next hand</button>
 </div></div>
 
 <script type="module">
@@ -494,6 +561,9 @@ let staged = new Set(), cursorId = null;
 let aiTimer = 0, aiPlan = [], betweenTimer = 0, needsDeal = true;
 let pendingPrompt = null, logLines = [];
 let lastRoundDetail = '';
+let startSeat = 0, dealReveal = 0, dealTimer = 0;
+let pendingMeld = null, scorecardData = null;
+const DEAL_STEP = 0.18, AI_STEP = 0.8, MELD_HOLD = 0.9;
 
 function threshold(team) {
   const total = totals[team];
@@ -629,7 +699,7 @@ function moveCursor(delta) {
 }
 
 function toggleStaged(id) {
-  if (state !== 'playing' || turn !== 0 || phase === 'between') return;
+  if (state !== 'playing' || turn !== 0 || phase === 'between' || phase === 'deal') return;
   syncCursor();
   if (!hands[0].some(card => card.id === id)) return;
   if (staged.has(id)) staged.delete(id); else staged.add(id);
@@ -646,9 +716,10 @@ function clearStaged() {
 }
 
 function renderSeats() {
-  $('left-cards').innerHTML = backs(hands[1].length, 'tiny');
-  $('partner-cards').innerHTML = backs(hands[2].length, 'mini', 11);
-  $('right-cards').innerHTML = backs(hands[3].length, 'tiny');
+  const shown = seat => phase === 'deal' ? Math.min(hands[seat].length, dealReveal) : hands[seat].length;
+  $('left-cards').innerHTML = backs(shown(1), 'tiny');
+  $('partner-cards').innerHTML = backs(shown(2), 'mini', 11);
+  $('right-cards').innerHTML = backs(shown(3), 'tiny');
 }
 
 function renderMelds() {
@@ -679,24 +750,28 @@ function renderMelds() {
         const isTarget = targets.includes(meld);
         return `<div class="meld-row ${canasta ? 'canasta' : ''} ${isTarget ? 'target' : ''}" data-meld="${index}"${isTarget ? ' title="Click to add your staged cards here"' : ''}>${cards}</div>`;
       }).join('');
-    const red = redThrees[team].length ? ` · Red 3s: ${redThrees[team].length}` : '';
-    html += `<div class="team-melds"><div class="team-label">${team === 0 ? 'YOU + JAN' : 'DICK + WENDY'}${red}</div>${rows || '<div class="team-label">no melds</div>'}</div>`;
+    const reds = redThrees[team];
+    const redRow = reds.length
+      ? `<div class="red-row"><span class="red-label">Red 3s</span>${reds.map(card => `<span class="meld-glyph red" title="${cardName(card)}">3</span>`).join('')}</div>`
+      : '';
+    html += `<div class="team-melds"><div class="team-label">${team === 0 ? 'YOU + JAN' : 'DICK + WENDY'}</div>${redRow}${rows || '<div class="team-label">no melds</div>'}</div>`;
   }
   $('melds').innerHTML = html;
 }
 
 function renderPiles() {
-  $('stock-card').innerHTML = stock.length ? '<div class="card back"></div>' : '<span class="dim">—</span>';
+  $('stock-card').innerHTML = stock.length ? '<div class="card back big"></div>' : '<span class="dim">—</span>';
   const top = topCard();
-  $('discard-card').innerHTML = top ? cardHTML(top) : '<span class="dim">—</span>';
+  $('discard-card').innerHTML = top ? cardHTML(top, 'big') : '<span class="dim">—</span>';
   $('btn-draw-pile').disabled = state !== 'playing' || turn !== 0 || phase !== 'draw';
   $('btn-take-pile').disabled = state !== 'playing' || turn !== 0 || phase !== 'draw' || !top;
 }
 
 function renderHand() {
   syncCursor();
-  $('hand').innerHTML = hands[0].map(card => {
-    const classes = [staged.has(card.id) ? 'selected' : '', card.id === cursorId ? 'cursor' : ''].filter(Boolean).join(' ');
+  const visible = phase === 'deal' ? hands[0].slice(0, dealReveal) : hands[0];
+  $('hand').innerHTML = visible.map((card, index) => {
+    const classes = [staged.has(card.id) ? 'selected' : '', card.id === cursorId ? 'cursor' : '', phase === 'deal' && index === visible.length - 1 ? 'dealt' : ''].filter(Boolean).join(' ');
     return cardHTML(card, classes);
   }).join('') || '<span class="dim">No cards</span>';
 }
@@ -705,6 +780,7 @@ function renderStatus() {
   let text;
   const top = topCard();
   if (state === 'title' || state === 'won' || state === 'over') text = 'Press Space = new game.';
+  else if (phase === 'deal') text = 'Dealing…';
   else if (phase === 'between') text = 'Next hand starts shortly…';
   else if (turn !== 0) text = `${SEATS[turn].name} is thinking…`;
   else if (phase === 'draw') {
@@ -730,7 +806,7 @@ function renderStatus() {
 }
 
 function renderControls() {
-  const humanTurn = state === 'playing' && turn === 0 && phase !== 'between';
+  const humanTurn = state === 'playing' && turn === 0 && phase !== 'between' && phase !== 'deal';
   const stagedCards = hands[0].filter(card => staged.has(card.id));
   $('btn-meld').disabled = !humanTurn || phase !== 'play' || !staged.size;
   $('btn-discard').disabled = !humanTurn || phase !== 'play';
@@ -742,7 +818,12 @@ function renderControls() {
 
 function render() {
   score = totals[0];
+  $('score').textContent = formatScore(totals[0]);
   $('foe-score').textContent = formatScore(totals[1]);
+  $('score-us').textContent = formatScore(totals[0]);
+  $('score-them').textContent = formatScore(totals[1]);
+  $('threshold-us').textContent = String(threshold(0));
+  $('threshold-them').textContent = String(threshold(1));
   $('round-label').textContent = String(roundNo);
   renderSeats();
   renderMelds();
@@ -754,7 +835,7 @@ function render() {
 
 function validateMeld(cards, { layoff = false, allowBlackThree = false } = {}) {
   if (!cards.length) return { ok: false, reason: 'Stage at least one card first.' };
-  if (cards.some(card => card.redThree)) return { ok: false, reason: 'Red 3s are laid aside for bonus points; they cannot be melded.' };
+  if (cards.some(card => card.redThree)) return { ok: false, reason: 'Red 3s go to the team\'s red 3s for bonus points; they cannot be melded.' };
   const blacks = cards.filter(card => card.blackThree);
   if (blacks.length) {
     if (!allowBlackThree) return { ok: false, reason: 'Black 3s can only be melded as the final meld when going out.' };
@@ -912,13 +993,13 @@ function humanDraw() {
     return finishRound(-1, false);
   }
   if (result.exhausted) {
-    notify(`You drew ${result.reds > 1 ? 'red threes' : 'a red three'}; the stock is empty, so the hand ends.`);
+    notify(`You drew ${result.reds > 1 ? 'red threes' : 'a red three'}; ${result.reds > 1 ? 'they go' : 'it goes'} to your red 3s, but the stock is empty, so the hand ends.`);
     return finishRound(-1, false);
   }
   phase = 'play';
   sound(440, 0.06, 'square', 620, 0.08);
   notify(result.reds
-    ? `You drew ${result.reds} red three${result.reds > 1 ? 's' : ''} and laid ${result.reds > 1 ? 'them' : 'it'} aside; you drew ${cardName(result.card)}.`
+    ? `You drew ${result.reds} red three${result.reds > 1 ? 's' : ''}; ${result.reds > 1 ? 'they go' : 'it goes'} to your red 3s. You draw ${cardName(result.card)}.`
     : `You drew ${cardName(result.card)}.`);
   render();
 }
@@ -1016,7 +1097,7 @@ function humanTake() {
   sound(700, 0.12, 'square', 1100, 0.12);
   if (!hands[0].length && hasCanasta(team)) { finishRound(team, false); return; }
   const short = firstMeldPending ? Math.max(0, threshold(team) - turnMeldValue) : 0;
-  const redText = reds ? `, laying aside ${reds} red three${reds > 1 ? 's' : ''}` : '';
+  const redText = reds ? `; ${reds} red three${reds > 1 ? 's go' : ' goes'} to your red 3s` : '';
   notify(short
     ? `You took the pile. Meld ${formatScore(short)} more points this turn before discarding.`
     : `You took the pile and ${target ? 'added' : 'melded'} ${cardName(top)}${redText}.`);
@@ -1026,7 +1107,7 @@ function humanTake() {
 function discardCard(seat, card, confirmed = false) {
   const team = teamOf(seat);
   if (phase !== 'play') return notify('Draw or take the pile first.');
-  if (card.redThree) return notify('Red threes are laid aside automatically; choose another card.', 'warn');
+  if (card.redThree) return notify('Red 3s go to your red 3s automatically; choose another card.', 'warn');
   const lastCard = hands[seat].length === 1;
   if (firstMeldTurn && turnMeldValue > 0 && turnMeldValue < threshold(team) && !(lastCard && hasCanasta(team))) {
     return notify(`You have started your first meld but only have ${turnMeldValue} of ${threshold(team)} points. Meld more before discarding.`, 'warn');
@@ -1071,10 +1152,12 @@ function startTurn(seat) {
   meldedThisTurn[seat] = false;
   staged.clear();
   aiPlan = [];
-  aiTimer = 0.45;
+  aiTimer = AI_STEP;
   const red = layAsideRedThrees(seat, { replace: true });
   if (red.count) {
-    notify(`${SEATS[seat].name} laid aside ${red.count} red three${red.count > 1 ? 's' : ''} for ${red.count * 100} bonus points.`);
+    const who = seat === 0 ? 'You' : SEATS[seat].name;
+    const theirs = seat === 0 ? 'your' : 'their';
+    notify(`${who} ${seat === 0 ? 'turn' : 'turns'} up ${red.count} red three${red.count > 1 ? 's' : ''}; ${red.count > 1 ? 'they go' : 'it goes'} to ${theirs} red 3s.`);
   }
   render();
 }
@@ -1085,7 +1168,7 @@ function nextTurn() {
 
 function dealRound() {
   needsDeal = false;
-  phase = 'draw';
+  phase = 'deal';
   melds = [];
   redThrees = [[], []];
   hands = [[], [], [], []];
@@ -1101,23 +1184,38 @@ function dealRound() {
     sortHand(hands[seat]);
   }
   stock = deck;
-  for (let seat = 0; seat < 4; seat++) layAsideRedThrees(seat, { replace: true });
+  dealReveal = 0;
+  dealTimer = 0.25;
+  pendingMeld = null;
+  const area = $('play-area');
+  if (area) area.classList.remove('show');
+  aiPlan = [];
+  aiTimer = 0;
+  staged.clear();
+  cursorId = hands[0].length ? hands[0][hands[0].length - 1].id : null;
+  notify(`Round ${roundNo}: dealing…`);
+  render();
+}
+
+function finishDeal() {
   let first = stock.pop();
   while (first && (first.wild || first.redThree) && stock.length) {
     discard.push(first);
     first = stock.pop();
   }
   if (first) discard.push(first);
-  staged.clear();
   cursorId = hands[0].length ? hands[0][hands[0].length - 1].id : null;
+  dealReveal = 11;
   notify(`Round ${roundNo}: first meld needs ${threshold(0)} points for your team.`);
-  startTurn(0);
+  const firstSeat = startSeat;
+  startSeat = (startSeat + 1) % 4;
+  startTurn(firstSeat);
 }
 
 function finishRound(wentOutTeam, concealed) {
-  if (phase === 'between') return;
+  if (phase === 'between' || state === 'scorecard') return;
   for (let seat = 0; seat < 4; seat++) layAsideRedThrees(seat, { replace: false });
-  const roundScores = [0, 0];
+  const teamDetails = [];
   const breakdown = [];
   for (const team of [0, 1]) {
     const meldPoints = melds.filter(meld => meld.team === team).flatMap(meld => meld.cards).reduce((sum, card) => sum + card.meldValue, 0);
@@ -1129,28 +1227,86 @@ function finishRound(wentOutTeam, concealed) {
     const redCount = redThrees[team].length;
     let redBonus = redCount >= 4 ? 800 : redCount * 100;
     if (wentOutTeam !== team && !melds.some(meld => meld.team === team)) redBonus = -redBonus;
-    const outBonus = wentOutTeam === team ? 100 + (concealed ? 100 : 0) : 0;
-    roundScores[team] = meldPoints - handPoints + natural * 500 + mixed * 300 + redBonus + outBonus;
-    totals[team] += roundScores[team];
-    breakdown.push(`${team === 0 ? 'You' : 'Them'} ${roundScores[team] >= 0 ? '+' : ''}${formatScore(roundScores[team])}`);
+    const goingOut = wentOutTeam === team ? 100 : 0;
+    const concealedBonus = wentOutTeam === team && concealed ? 100 : 0;
+    const total = meldPoints - handPoints + natural * 500 + mixed * 300 + redBonus + goingOut + concealedBonus;
+    totals[team] += total;
+    teamDetails.push({
+      team, meld: meldPoints, hand: handPoints, natural, mixed,
+      redCount, redBonus, goingOut, concealed: concealedBonus, total,
+      matchTotal: totals[team],
+    });
+    breakdown.push(`${team === 0 ? 'You' : 'Them'} ${total >= 0 ? '+' : ''}${formatScore(total)}`);
   }
   score = totals[0];
   lastRoundDetail = breakdown.join(' · ');
   phase = 'between';
-  betweenTimer = 2.6;
   const youWon = totals[0] >= 5000 && totals[0] > totals[1];
   const theyWon = totals[1] >= 5000 && totals[1] > totals[0];
-  if (youWon || theyWon) {
-    endRound(youWon, {
-      title: youWon ? 'MATCH WON' : 'MATCH LOST',
-      detail: `You ${formatScore(totals[0])} — ${formatScore(totals[1])} Them · ${lastRoundDetail}`,
-    });
-  } else {
-    sound(880, 0.2, 'triangle', 1320, 0.12);
-    notify(`Round ${roundNo} over. ${lastRoundDetail} Next hand in a moment.`);
-    roundNo++;
-    render();
+  scorecardData = {
+    round: roundNo,
+    teams: teamDetails,
+    match: youWon || theyWon,
+    won: youWon,
+    end: youWon || theyWon
+      ? {
+        title: youWon ? 'MATCH WON' : 'MATCH LOST',
+        detail: `You ${formatScore(totals[0])} — ${formatScore(totals[1])} Them · ${lastRoundDetail}`,
+      }
+      : null,
+  };
+  sound(880, 0.2, 'triangle', 1320, 0.12);
+  notify(`Round ${roundNo} complete.`);
+  render();
+  show('scorecard');
+  renderScorecard();
+}
+
+function renderScorecard() {
+  const data = scorecardData;
+  if (!data) return;
+  $('scorecard-title').textContent = data.match ? (data.won ? 'MATCH WON' : 'MATCH LOST') : `ROUND ${data.round} SCORE`;
+  $('scorecard-subtitle').textContent = data.match
+    ? `You ${formatScore(totals[0])} — ${formatScore(totals[1])} Them`
+    : `How this hand scored · first meld next: ${threshold(0)} / ${threshold(1)}`;
+  const signed = value => {
+    if (!value) return '0';
+    return value > 0 ? `+${formatScore(value)}` : formatScore(value);
+  };
+  const rows = [
+    ['Melded cards', t => signed(t.meld)],
+    ['Natural canastas', t => `${t.natural} × 500 = ${signed(t.natural * 500)}`],
+    ['Mixed canastas', t => `${t.mixed} × 300 = ${signed(t.mixed * 300)}`],
+    ['Red 3s', t => `${t.redCount} red 3${t.redCount === 1 ? '' : 's'} = ${signed(t.redBonus)}`],
+    ['Going out', t => signed(t.goingOut)],
+    ['Concealed hand', t => signed(t.concealed)],
+    ['Hand cards', t => signed(-t.hand)],
+    ['Round score', t => signed(t.total), 'total-row'],
+    ['Match score', t => formatScore(t.matchTotal), 'total-row'],
+    ['Next threshold', t => String(threshold(t.team))],
+  ];
+  $('scorecard-body').innerHTML = rows.map(([label, value, cls]) => {
+    const cells = data.teams.map(t => {
+      const text = value(t);
+      return `<td class="${text.includes('-') ? 'neg' : ''}">${text}</td>`;
+    }).join('');
+    return `<tr class="${cls ?? ''}"><td>${label}</td>${cells}</tr>`;
+  }).join('');
+  $('scorecard-close').textContent = data.match ? 'Close' : 'Next hand';
+}
+
+function closeScorecard() {
+  if (state !== 'scorecard' || !scorecardData) return;
+  const data = scorecardData;
+  scorecardData = null;
+  if (data.match) {
+    show('playing');
+    endRound(data.won, data.end ?? {});
+    return;
   }
+  roundNo++;
+  show('playing');
+  dealRound();
 }
 
 function candidateGroups(cards, allowBlackThree = false) {
@@ -1396,34 +1552,56 @@ function aiStep() {
         finishRound(-1, false);
       } else {
         phase = 'play';
-        notify(`${SEATS[seat].name} drew a card${result.reds ? ' and laid aside a red three' : ''}.`);
+        notify(`${SEATS[seat].name} drew a card${result.reds ? '; a red three goes to their red 3s' : ''}.`);
         render();
       }
     } else finishRound(-1, false);
-    aiTimer = 0.45;
+    aiTimer = AI_STEP;
     return;
   }
   if (aiPlan.length) {
     const action = aiPlan.shift();
-    const result = commitMeld(seat, action.cards, action.target ?? null);
-    if (!result.ok) { console.warn('AI meld failed:', result.reason); aiPlan = []; }
-    aiTimer = 0.45;
-    render();
+    animateMeld(seat, action.cards, action.target ?? null, result => {
+      if (!result.ok) { console.warn('AI meld failed:', result.reason); aiPlan = []; }
+      aiTimer = AI_STEP;
+      render();
+    });
     return;
   }
   const plan = findBestMeld(seat);
   if (plan) {
     aiPlan = plan.slice(1);
     const first = plan[0];
-    const result = commitMeld(seat, first.cards, first.target ?? null);
-    if (!result.ok) { console.warn('AI meld failed:', result.reason); aiPlan = []; }
-    aiTimer = 0.45;
-    render();
+    animateMeld(seat, first.cards, first.target ?? null, result => {
+      if (!result.ok) { console.warn('AI meld failed:', result.reason); aiPlan = []; }
+      aiTimer = AI_STEP;
+      render();
+    });
     return;
   }
-  if (attemptGoOut(seat)) { aiTimer = 0.45; return; }
+  if (attemptGoOut(seat)) { aiTimer = AI_STEP; return; }
   aiDiscard(seat);
-  aiTimer = 0.45;
+  aiTimer = AI_STEP;
+  render();
+}
+
+function animateMeld(seat, cards, target, done) {
+  const area = $('play-area');
+  if (!area || !cards.length) { if (done) done(commitMeld(seat, cards, target)); return; }
+  area.className = '';
+  area.innerHTML = cards.map(card => cardHTML(card)).join('');
+  void area.offsetWidth;
+  area.classList.add('show', seat === 1 ? 'from-left' : seat === 3 ? 'from-right' : 'from-top');
+  pendingMeld = { seat, cards: cards.slice(), target, timer: MELD_HOLD, done };
+}
+
+function finishMeldAnimation() {
+  if (!pendingMeld) return;
+  const meld = pendingMeld;
+  pendingMeld = null;
+  $('play-area').classList.remove('show');
+  const result = commitMeld(meld.seat, meld.cards, meld.target);
+  if (meld.done) meld.done(result);
   render();
 }
 
@@ -1471,7 +1649,7 @@ function humanTakeForAI(seat) {
   if (target) turnLayoff = true;
   turnMeldValue += promised;
   phase = 'play';
-  notify(`${SEATS[seat].name} took the discard pile${reds ? ` and laid aside ${reds} red three${reds > 1 ? 's' : ''}` : ''}.`);
+  notify(`${SEATS[seat].name} took the discard pile${reds ? `; ${reds} red three${reds > 1 ? 's go' : ' goes'} to their red 3s` : ''}.`);
   if (!hands[seat].length && hasCanasta(team)) { finishRound(team, false); return true; }
   return true;
 }
@@ -1545,6 +1723,7 @@ function build() {
   $('btn-sort').addEventListener('click', sortHumanHand);
   $('btn-clear').addEventListener('click', clearStaged);
   $('btn-help').addEventListener('click', () => { _helpFrom = state; show('help'); });
+  $('scorecard-close').addEventListener('click', closeScorecard);
   $('prompt-yes').addEventListener('click', () => resolvePrompt(true));
   $('prompt-no').addEventListener('click', () => resolvePrompt(false));
 }
@@ -1573,6 +1752,13 @@ function reset() {
   aiPlan = [];
   betweenTimer = 0;
   needsDeal = true;
+  startSeat = Math.floor(random() * 4);
+  dealReveal = 0;
+  dealTimer = 0;
+  pendingMeld = null;
+  scorecardData = null;
+  const area = $('play-area');
+  if (area) { area.classList.remove('show'); area.innerHTML = ''; }
   hidePrompt();
   logLines = [];
   score = 0;
@@ -1581,10 +1767,24 @@ function reset() {
 }
 
 function update(dt) {
-  if (needsDeal) dealRound();
+  if (needsDeal) { dealRound(); return; }
+  if (phase === 'deal') {
+    dealTimer -= dt;
+    if (dealTimer <= 0) {
+      dealReveal++;
+      if (dealReveal >= 11) finishDeal();
+      else { dealTimer = DEAL_STEP; render(); }
+    }
+    return;
+  }
   if (phase === 'between') {
     betweenTimer -= dt;
     if (betweenTimer <= 0) dealRound();
+    return;
+  }
+  if (pendingMeld) {
+    pendingMeld.timer -= dt;
+    if (pendingMeld.timer <= 0) finishMeldAnimation();
     return;
   }
   if (pendingPrompt) return;
@@ -1616,7 +1816,7 @@ $('best').textContent = best === null ? '—' : formatScore(best);
 
 function show(next) {
   state = next;
-  for (const id of ['title', 'paused', 'over', 'help']) $(id).classList.toggle('show', id === next || (id === 'over' && next === 'won'));
+  for (const id of ['title', 'paused', 'over', 'help', 'scorecard']) $(id).classList.toggle('show', id === next || (id === 'over' && next === 'won'));
 }
 
 function startRound() {
@@ -1649,6 +1849,8 @@ function frame() {
   if (wasPressed('mute')) { _muted = !_muted; saved.set('muted', _muted); }
   if (state === 'help') {
     if (_pressed.size) show(_helpFrom);
+  } else if (state === 'scorecard') {
+    if (wasPressed('action')) closeScorecard();
   } else if (wasPressed('help') && state !== 'playing') {
     _helpFrom = state;
     show('help');
