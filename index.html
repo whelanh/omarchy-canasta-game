@@ -37,9 +37,14 @@
   #melds { flex: 0 0 auto; width: 100%; max-height: 146px; margin-top: 6px; overflow-y: auto; overflow-x: hidden; display: flex; flex-wrap: nowrap; gap: 6px 10px; align-content: flex-start; justify-content: center; padding: 0; border: none; border-radius: 0; background: none; }
   .team-melds { flex: 1 1 0; min-width: 0; max-width: 49%; display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 4px 8px; padding: 5px 8px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); background: color-mix(in srgb, var(--background) 88%, transparent); }
   .team-label { flex: 0 0 100%; font-size: 11px; color: color-mix(in srgb, var(--foreground) 74%, var(--background)); }
-  .meld-row { display: flex; flex: 0 0 auto; gap: 2px; align-items: center; pointer-events: auto; border-radius: 6px; }
-  .meld-row.canasta { outline: 1px solid var(--yellow); border-radius: 6px; padding: 2px; }
+  .meld-row { display: flex; flex: 0 0 auto; gap: 1px; align-items: center; pointer-events: auto; border-radius: 6px; padding: 1px 2px; }
+  .meld-row.canasta { outline: 1px solid var(--yellow); border-radius: 6px; padding: 2px 4px; }
   .meld-row.target { outline: 2px solid var(--accent); outline-offset: 2px; cursor: pointer; background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .meld-glyph { display: inline-block; font-size: 19px; font-weight: 700; line-height: 1; letter-spacing: .5px; }
+  .meld-glyph.red { color: var(--red); }
+  .meld-glyph.black { color: var(--foreground); }
+  .meld-glyph.joker { color: var(--accent); font-size: 17px; }
+  .meld-mult { display: inline-block; margin-right: 2px; font-size: 13px; font-weight: 700; color: var(--accent); }
   #stock-pile { position: absolute; left: 50%; top: 55%; transform: translate(-50%, -50%); display: flex; justify-content: center; align-items: center; gap: 22px; min-height: 84px; }
   .pile-button { all: unset; pointer-events: auto; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 7px; }
   .pile-button:disabled { cursor: default; opacity: 0.55; }
@@ -96,17 +101,7 @@
   .card.tiny .corner { display: none; }
   .card.tiny .centre { width: 12px; height: 12px; }
   .card.tiny .joker-star { width: 14px; height: 14px; }
-  .card.meld { width: 38px; height: 55px; border-radius: 5px; cursor: pointer; }
-  .card.meld .corner.top { top: 2px; left: 3px; }
-  .card.meld .corner.bottom { bottom: 2px; right: 3px; }
-  .card.meld .rank { font-size: 11px; }
-  .card.meld .suit { width: 8px; height: 8px; }
-  .card.meld .centre { width: 21px; height: 21px; }
-  .card.meld .court { font-size: 20px; }
-  .card.meld .court-wrap .suit { width: 9px; height: 9px; }
-  .card.meld .joker-rank { font-size: 6px; }
-  .card.meld .joker-star { width: 25px; height: 25px; }
-  .meld-count { flex: 0 0 auto; min-width: 17px; text-align: right; font-size: 12px; font-weight: 700; color: var(--accent); }
+
 
   #message { position: fixed; left: 16px; bottom: 196px; max-width: min(390px, 40vw); z-index: 30; pointer-events: none; }
   #message-text { display: block; padding: 9px 12px; border-radius: 9px; font-size: 13px; line-height: 1.4; background: color-mix(in srgb, var(--background) 92%, transparent); border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent); }
@@ -211,7 +206,7 @@
   </table>
   <p class="dim">Make melds of 3+ equal cards. At least two must be natural, and a meld can contain at most three wild cards (2s and Jokers). Seven cards make a Canasta. Red 3s are laid aside automatically for bonus points; black 3s can only be melded when going out.</p>
   <p class="dim">A team may have only one meld of each rank, so matching cards are added to it. Click a team meld to add staged cards to it. Your team's first meld must reach the threshold shown in the status line, unless you meld your whole hand with a Canasta. The discard pile may be frozen or blocked — the game will say which.</p>
-  <p class="dim">Melds show a multiplier and one card face; wild cards in mixed melds are shown separately. Taking the pile uses two matching natural cards from your hand; stage a wild or extra cards to include them.</p>
+  <p class="dim">Melds show coloured ranks, with jokers as stars and wildcards on the right. A canasta of seven or more cards shows a count. Taking the pile uses two matching natural cards from your hand; stage a wild or extra cards to include them.</p>
   <p class="dim">Press any key to close</p>
 </div></div>
 
@@ -665,14 +660,24 @@ function renderMelds() {
       .filter(({ meld }) => meld.team === team)
       .map(({ meld, index }) => {
         const naturals = meld.cards.filter(card => !card.wild);
-        const wilds = meld.cards.filter(card => card.wild);
-        const face = naturals[0];
-        const count = face
-          ? `<span class="meld-count" title="${naturals.length} × ${cardName(face)}">${naturals.length}×</span>`
-          : '';
-        const cards = `${count}${face ? cardHTML(face, 'meld') : ''}${wilds.map(card => cardHTML(card, 'meld')).join('')}`;
+        const wilds = meld.cards.filter(card => card.wild)
+          .sort((a, b) => (a.rank === 0 ? 1 : 0) - (b.rank === 0 ? 1 : 0));
+        const glyph = card => card.rank === 0
+          ? `<span class="meld-glyph joker" title="${cardName(card)}">★</span>`
+          : `<span class="meld-glyph ${card.red ? 'red' : 'black'}" title="${cardName(card)}">${rankLabel(card.rank)}</span>`;
+        const canasta = meld.cards.length >= 7;
+        let cards = '';
+        if (canasta) {
+          const face = naturals[0];
+          const title = `${meld.cards.length}-card canasta: ${naturals.length} ${rankLabel(face.rank)}${naturals.length === 1 ? '' : 's'}${wilds.length ? ` and ${wilds.length} wild${wilds.length === 1 ? '' : 's'}` : ''}`;
+          cards += `<span class="meld-mult" title="${title}">${naturals.length}×</span>`;
+          cards += `<span class="meld-glyph ${face.red ? 'red' : 'black'}" title="${cardName(face)}">${rankLabel(face.rank)}</span>`;
+        } else {
+          cards += naturals.map(glyph).join('');
+        }
+        cards += wilds.map(glyph).join('');
         const isTarget = targets.includes(meld);
-        return `<div class="meld-row ${meld.cards.length >= 7 ? 'canasta' : ''} ${isTarget ? 'target' : ''}" data-meld="${index}"${isTarget ? ' title="Click to add your staged cards here"' : ''}>${cards}</div>`;
+        return `<div class="meld-row ${canasta ? 'canasta' : ''} ${isTarget ? 'target' : ''}" data-meld="${index}"${isTarget ? ' title="Click to add your staged cards here"' : ''}>${cards}</div>`;
       }).join('');
     const red = redThrees[team].length ? ` · Red 3s: ${redThrees[team].length}` : '';
     html += `<div class="team-melds"><div class="team-label">${team === 0 ? 'YOU + JAN' : 'DICK + WENDY'}${red}</div>${rows || '<div class="team-label">no melds</div>'}</div>`;
