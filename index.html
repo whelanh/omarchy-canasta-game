@@ -30,6 +30,17 @@
   .dim { color: color-mix(in srgb, var(--foreground) 60%, var(--background)); }
   #help table { margin: 12px auto; border-spacing: 20px 6px; font-size: 16px; text-align: left; }
   #help td:first-child { white-space: nowrap; }
+  #help > div { max-height: calc(100vh - 24px); overflow-y: auto; pointer-events: auto; box-sizing: border-box; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--accent) 55%, var(--background)) transparent; }
+  #help > div::-webkit-scrollbar { width: 8px; }
+  #help > div::-webkit-scrollbar-track { background: transparent; }
+  #help > div::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--accent) 55%, var(--background)); border-radius: 999px; }
+  #help h2 { margin: 18px 0 0; font-size: 20px; letter-spacing: 2px; color: var(--accent); }
+  #help table.values { border-collapse: collapse; border-spacing: 0; min-width: 300px; margin: 8px auto 4px; font-size: 15px; }
+  #help table.values th, #help table.values td { padding: 4px 14px; }
+  #help table.values th:last-child, #help table.values td:last-child { text-align: right; white-space: nowrap; }
+  #help table.values thead th { color: var(--accent); font-weight: 600; border-bottom: 1px solid color-mix(in srgb, var(--foreground) 22%, transparent); }
+  #help table.values tbody tr + tr td { border-top: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent); }
+  #help .values-note { max-width: 620px; margin: 4px auto 0; font-size: 14px; }
 
   #table-ui { position: fixed; inset: 48px 12px 12px; display: grid; grid-template-columns: 1fr 1.5fr 1fr; grid-template-rows: 86px 1fr 176px; gap: 8px; pointer-events: none; z-index: 10; }
   .seat { border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--background) 86%, transparent); box-shadow: 0 4px 18px color-mix(in srgb, var(--background) 45%, transparent); padding: 6px 10px; font-size: 13px; pointer-events: none; }
@@ -262,6 +273,18 @@
     <tr><td class="key">Esc / P</td><td>Pause, resume, back to all games</td></tr>
     <tr><td class="key">M / ?</td><td>Sound on or off / this help</td></tr>
   </table>
+  <h2>CARD VALUES</h2>
+  <table class="values">
+    <thead><tr><th>Cards</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Black 3s – 7s</td><td>5 points</td></tr>
+      <tr><td>8s – Kings</td><td>10 points</td></tr>
+      <tr><td>Aces</td><td>20 points</td></tr>
+      <tr><td>2s <span class="dim">(wild)</span></td><td>20 points</td></tr>
+      <tr><td>Jokers <span class="dim">(wild)</span></td><td>50 points</td></tr>
+    </tbody>
+  </table>
+  <p class="dim values-note">Red 3s are bonus cards: 100 points each when your team has melded (800 for all four), or −100 each if it has not. They are not part of a meld. These values also count against a team for cards left in its hands.</p>
   <p class="dim">Make melds of 3+ equal cards. At least two must be natural, and a meld can contain at most three wild cards (2s and Jokers). Seven cards make a Canasta. Red 3s are laid aside and replaced immediately after the deal, and score in the team's red 3s row; black 3s can only be melded when going out.</p>
   <p class="dim">A team may have only one meld of each rank, so matching cards are added to it. Click a team meld to add staged cards to it. Your team's first meld must reach the threshold shown in the status line, unless you meld your whole hand with a Canasta. The discard pile may be frozen or blocked — the game will say which. A wild card or red three anywhere in the pile freezes it, even after later cards cover it.</p>
   <p class="dim">Melds show coloured ranks, with jokers as stars and wildcards on the right. A canasta of seven or more cards shows a count. Taking the pile uses the cards it needs from your hand: two matching naturals, or one match and a wild unless the pile is frozen. It can also add the top card to your team's matching meld. Stage cards to choose them yourself.</p>

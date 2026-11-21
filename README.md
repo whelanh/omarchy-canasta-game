@@ -31,6 +31,8 @@ Click any of your team's melds to add the staged cards to it.
 
 This is the Classic Canasta variant: two decks plus four jokers, partnerships, 11-card hands, first-meld thresholds, frozen and blocked piles, red-three bonuses, Canastas, going out, and play to 5,000 points. The game explains illegal moves such as blocked pile pickups, insufficient first melds, invalid meld composition, and discarding a card that could be laid off.
 
+Card values are 5 for black 3s through 7s, 10 for 8s through Kings, 20 for Aces and 2s, and 50 for Jokers. Red 3s are bonus cards worth 100 each (800 for all four) when the team has melded, or −100 each when it has not. These values also count against a team for cards left in its hands.
+
 Melds show coloured ranks, with jokers as stars and wildcards on the right; a canasta of seven or more cards shows a count. Taking the discard pile automatically uses the cards it needs from your hand — two matching natural cards, or one match and a wild when the pile is not frozen — and can add the top card to your team's matching meld. Stage cards first to choose them yourself. The stock and discard piles sit in the middle of the table and show only their cards — no counts — so you have to keep track, as at a real table.
 
 The left score table shows each team's total and first-meld threshold. A scorecard appears after every hand with the full scoring breakdown; close it to deal the next hand. Red 3s are laid aside and replaced immediately after the deal and show in the team row, and the opening deal and opponent melds are animated. The first hand starts with a random player, and the turn rotates after each hand.
