@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Canasta">
+  <rect width="64" height="64" rx="14" fill="#17232d"/>
+  <g fill="none" stroke="#ddb777" stroke-width="3" stroke-linejoin="round">
+    <rect x="12" y="18" width="24" height="34" rx="5" transform="rotate(-12 24 35)"/>
+    <rect x="28" y="12" width="24" height="34" rx="5" transform="rotate(12 40 29)"/>
+  </g>
+  <path d="M31 24c5 5 9 8 9 12a5 5 0 0 1-9 3 5 5 0 0 1-9-3c0-4 4-7 9-12Z" fill="#ddb777"/>
+  <circle cx="48" cy="49" r="4" fill="#9ece6a"/>
+</svg>
