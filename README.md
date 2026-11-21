@@ -38,3 +38,7 @@ The left score table shows each team's total and first-meld threshold. A scoreca
 ![Hand scorecard](screenshot-scorecard.png)
 
 No build step, local assets, or `fetch()` calls are used. three.js is pinned from a CDN, and the game runs directly from `file://` as Game Vibes requires.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
