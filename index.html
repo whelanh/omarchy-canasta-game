@@ -781,7 +781,10 @@ function humanTake() {
   }
   hands[0] = hands[0].filter(card => !stagedIds.has(card.id));
   if (target) target.cards.push(...promisedCards);
-  else melds.push({ team, cards: promisedCards.slice() });
+  else {
+    melds.push({ team, cards: promisedCards.slice() });
+    mergeMelds(team);
+  }
   hands[0].push(...discard.slice(0, -1));
   sortHand(hands[0]);
   discard = [top];
@@ -1071,6 +1074,7 @@ function applyGoOutPlan(seat, plan) {
     .reduce((sum, card) => sum + card.meldValue, 0);
   turnActions += plan.actions.length;
   staged.clear();
+  mergeMelds(team);
   sound(1040, 0.25, 'triangle', 1560, 0.14);
   finishRound(team, plan.concealed);
 }
@@ -1212,7 +1216,10 @@ function humanTakeForAI(seat) {
   const ids = new Set(used.map(card => card.id));
   hands[seat] = hands[seat].filter(card => !ids.has(card.id));
   if (target) target.cards.push(top);
-  else melds.push({ team, cards: group.cards });
+  else {
+    melds.push({ team, cards: group.cards });
+    mergeMelds(team);
+  }
   hands[seat].push(...discard.slice(0, -1));
   sortHand(hands[seat]);
   discard = [top];
