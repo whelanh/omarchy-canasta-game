@@ -356,7 +356,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.prepend(renderer.domElement);
 
 const scene = new THREE.Scene();
-const surroundColor = new THREE.Color(PALETTE.mode === 'light' ? PALETTE.background : '#2c3543');
+const surroundColor = new THREE.Color(PALETTE.mode === 'light' ? '#e8dcc4' : '#2c3543');
 scene.background = surroundColor;
 scene.fog = new THREE.Fog(surroundColor, 30, 70);
 
