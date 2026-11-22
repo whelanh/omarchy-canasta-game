@@ -1,10 +1,18 @@
 # Canasta for Omarchy Game Vibes
 
-An original, single-file Classic Canasta game for Omarchy Game Vibes. Play four-handed partnership Canasta against three bots, with rule explanations when a move is not allowed.
+An original, single-file Classic Canasta game for Omarchy Game Vibes, which also runs in any modern browser. Play four-handed partnership Canasta against three bots, with rule explanations when a move is not allowed.
 
 ![The Canasta table](screenshot-light.png)
 
-## Install
+## Play in your browser
+
+No Omarchy install needed. Play the hosted version at:
+
+**https://whelanh.github.io/omarchy-canasta-game/**
+
+The browser version follows your OS or browser light/dark preference. It needs WebGL, a physical keyboard, and internet access for the pinned three.js module.
+
+## Install for Omarchy
 
 ```bash
 omarchy games vibes install https://github.com/whelanh/omarchy-canasta-game.git
@@ -23,7 +31,7 @@ Or open the Game Vibes menu, choose **Install > Gaming > Game Vibes**, and paste
 - `O`: go out (meld the rest, or all but one and discard)
 - `V`: sort your hand · `C`: clear staged cards
 - `H`: Coach on or off
-- `Esc` / `P`: pause · `Q`: back to Game Vibes
+- `Esc` / `P`: pause · `Q`: back to Game Vibes (or the previous page in a browser)
 - `?`: help
 
 Click any of your team's melds to add the staged cards to it.
@@ -46,7 +54,7 @@ The left score table shows each team's total and first-meld threshold. A scoreca
 
 ![Hand scorecard](screenshot-scorecard.png)
 
-No build step, local assets, or `fetch()` calls are used. three.js is pinned from a CDN, and the game runs directly from `file://` as Game Vibes requires.
+No build step, local assets, or `fetch()` calls are used. three.js is pinned from a CDN, and the same `index.html` runs from `file://` in Game Vibes and from static hosting such as GitHub Pages. Game Vibes passes the desktop palette in the URL; the browser version uses a built-in light or dark fallback.
 
 ## License
 

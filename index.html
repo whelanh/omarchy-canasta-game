@@ -4,7 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Canasta</title>
-<meta name="description" content="Classic partnership Canasta with rules that explain every move">
+<meta name="description" content="Classic partnership Canasta with a scoring Coach, AI partners and opponents, animated table, and full hand scorecards">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta property="og:title" content="Canasta">
+<meta property="og:description" content="Classic four-handed partnership Canasta with a scoring Coach, AI partners and opponents, an animated table, and full hand scorecards.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://whelanh.github.io/omarchy-canasta-game/">
+<meta property="og:image" content="https://whelanh.github.io/omarchy-canasta-game/screenshot-light.png">
+<meta name="twitter:card" content="summary_large_image">
 <style>
   html, body { margin: 0; height: 100%; overflow: hidden; background: var(--background); color: var(--foreground); font-family: ui-monospace, "JetBrainsMono Nerd Font", monospace; }
   canvas { display: block; }
@@ -297,7 +304,7 @@
 <div id="paused" class="screen"><div>
   <h1>PAUSED</h1>
   <p>Press <span class="key">Esc</span> to resume</p>
-  <p class="leave">Press <span class="key">Q</span> to go back to Game Vibes</p>
+  <p class="leave">Press <span class="key">Q</span> to go back to <span id="leave-target">Game Vibes</span></p>
 </div></div>
 
 <div id="over" class="screen"><div>
@@ -361,11 +368,18 @@ import * as THREE from 'three';
 // every colour in the game from PALETTE.
 // =============================================================================
 const NAME = 'canasta';
-const PALETTE = themed({
+const FALLBACK_DARK = {
   mode: 'dark',
   background: '#1a1b26', foreground: '#a9b1d6', accent: '#7aa2f7', muted: '#414868',
   red: '#f7768e', green: '#9ece6a', yellow: '#e0af68', blue: '#7aa2f7', magenta: '#ad8ee6', cyan: '#449dab', orange: '#eb927b',
-});
+};
+const FALLBACK_LIGHT = {
+  mode: 'light',
+  background: '#f7f1e3', foreground: '#2a2f4a', accent: '#2a78b0', muted: '#5d6b7d',
+  red: '#c43a2a', green: '#46782b', yellow: '#8f6600', blue: '#2470b0', magenta: '#8a5a9e', cyan: '#157682', orange: '#b44b1a',
+};
+const prefersLight = globalThis.matchMedia?.('(prefers-color-scheme: light)')?.matches ?? false;
+const PALETTE = themed(prefersLight ? FALLBACK_LIGHT : FALLBACK_DARK);
 const BEST_IS = 'higher';
 const formatScore = value => Math.floor(value).toLocaleString();
 const KEY_REPEAT = true;                  // held arrows repeat, for moving through a hand of cards
@@ -2676,6 +2690,7 @@ function endRound(won, { title, detail } = {}) {
 }
 
 for (const line of document.querySelectorAll('.leave')) line.hidden = history.length <= 1;
+if (location.protocol === 'http:' || location.protocol === 'https:') $('leave-target').textContent = 'the previous page';
 
 // The loop: keys → fixed-step simulation → draw → render. Game rules never run in draw.
 const STEP = 1 / 120, _clock = new THREE.Clock();
