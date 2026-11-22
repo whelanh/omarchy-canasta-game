@@ -22,10 +22,17 @@ Or open the Game Vibes menu, choose **Install > Gaming > Game Vibes**, and paste
 - `X`: discard the selected card (the button names it)
 - `O`: go out (meld the rest, or all but one and discard)
 - `V`: sort your hand · `C`: clear staged cards
+- `H`: Coach on or off
 - `Esc` / `P`: pause · `Q`: back to Game Vibes
 - `?`: help
 
 Click any of your team's melds to add the staged cards to it.
+
+## Coach
+
+The Coach watches the move you are staging and compares it with the best scoring line it can find. When a better line exists — a meld you have not made, a safer discard, a layoff you are about to throw away, a pile worth taking, or a chance to go out — a light bulb appears above the buttons. Hover over it, or click it, to read the suggested sequence.
+
+Press `H` to turn the Coach on or off. The setting is saved. The Coach only sees what a player at the table can see: your hand, the table, the piles and the score. It does not look at the other players' hands. It looks ahead through the melds, layoffs and discards it can find and values melds, natural and mixed Canastas, red 3s, cards left in hand, the first-meld threshold, wild cards, and the risk of discarding a rank an opponent has already melded.
 
 ## Rules
 

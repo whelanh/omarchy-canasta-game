@@ -109,6 +109,21 @@
   button.ui.primary { border-color: var(--accent); color: var(--accent); }
   button.ui.wide { grid-column: 1 / -1; }
 
+  /* The coach: a light bulb that appears only when a better move is available. */
+  #coach { position: fixed; right: 18px; bottom: 202px; z-index: 32; display: none; }
+  #coach.show { display: block; }
+  #coach-btn { all: unset; pointer-events: auto; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; color: var(--yellow); background: color-mix(in srgb, var(--background) 90%, var(--yellow)); border: 1px solid color-mix(in srgb, var(--yellow) 65%, transparent); box-shadow: 0 0 12px color-mix(in srgb, var(--yellow) 30%, transparent); animation: coach-glow 2s ease-in-out infinite; }
+  #coach-btn:hover, #coach-btn:focus-visible { color: var(--background); background: var(--yellow); outline: 2px solid var(--yellow); outline-offset: 2px; }
+  #coach-btn svg { width: 23px; height: 23px; fill: currentColor; }
+  @keyframes coach-glow {
+    0%, 100% { box-shadow: 0 0 10px color-mix(in srgb, var(--yellow) 24%, transparent); }
+    50% { box-shadow: 0 0 22px color-mix(in srgb, var(--yellow) 55%, transparent); }
+  }
+  #coach-tip { position: absolute; right: 0; bottom: 52px; width: min(340px, calc(100vw - 32px)); box-sizing: border-box; padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.42; text-align: left; color: var(--foreground); background: color-mix(in srgb, var(--background) 96%, transparent); border: 1px solid color-mix(in srgb, var(--yellow) 55%, transparent); box-shadow: 0 8px 26px color-mix(in srgb, var(--background) 70%, transparent); display: none; pointer-events: none; }
+  #coach-tip b { color: var(--yellow); font-weight: 700; }
+  #coach:hover #coach-tip, #coach.open #coach-tip, #coach-btn:focus-visible + #coach-tip { display: block; }
+  #btn-coach.on { border-color: var(--yellow); color: var(--yellow); }
+
   .card { position: relative; width: 58px; height: 84px; flex: 0 0 auto; border-radius: 7px; border: 1px solid color-mix(in srgb, var(--foreground) 28%, transparent); background: linear-gradient(145deg, color-mix(in srgb, var(--foreground) 8%, transparent), transparent 48%), color-mix(in srgb, var(--background) 86%, var(--foreground)); color: var(--foreground); box-shadow: 0 2px 7px color-mix(in srgb, var(--background) 72%, transparent); pointer-events: auto; cursor: pointer; user-select: none; transition: transform 90ms ease, outline-color 90ms ease; }
   .card:not(.back)::before { content: ""; position: absolute; inset: 2px; border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); border-radius: 5px; pointer-events: none; }
   .card .corner { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 1px; line-height: 1; font-weight: 700; }
@@ -230,8 +245,16 @@
     <button class="ui" id="btn-out">Go out · O</button>
     <button class="ui" id="btn-sort">Sort · V</button>
     <button class="ui" id="btn-clear">Clear · C</button>
+    <button class="ui" id="btn-coach">Coach on · H</button>
     <button class="ui wide" id="btn-help">Rules · ?</button>
   </div>
+</div>
+
+<div id="coach">
+  <button id="coach-btn" title="Coach advice" aria-label="Coach advice">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg>
+  </button>
+  <div id="coach-tip" role="status"></div>
 </div>
 
 <div id="message"><span id="message-text"></span><div id="log"></div></div>
@@ -248,7 +271,8 @@
   <h1>CANASTA</h1>
   <p>Classic four-handed partnership Canasta. Beat 5,000 points with your partner.</p>
   <p>Rules explain every rejected move — if you cannot do something, the game tells you why.</p>
-  <p><span class="key">Space</span> = new game · <span class="key">?</span> for controls and rules</p>
+  <p>A <span class="key">light bulb</span> appears when the Coach sees a better scoring move. Click it for the plan.</p>
+  <p><span class="key">Space</span> = new game · <span class="key">H</span> = Coach on/off · <span class="key">?</span> for controls and rules</p>
   <p class="dim">← → choose cards · F meld or lay off · X discard</p>
 </div></div>
 
@@ -276,6 +300,7 @@
     <tr><td class="key">X</td><td>Discard the selected card</td></tr>
     <tr><td class="key">O</td><td>Go out (meld the rest, or all but one and discard)</td></tr>
     <tr><td class="key">V / C</td><td>Sort hand / clear staged cards</td></tr>
+    <tr><td class="key">H</td><td>Coach on or off (a light bulb marks a better move)</td></tr>
     <tr><td class="key">Esc / P</td><td>Pause, resume, back to all games</td></tr>
     <tr><td class="key">M / ?</td><td>Sound on or off / this help</td></tr>
   </table>
@@ -294,6 +319,7 @@
   <p class="dim">Make melds of 3+ equal cards. At least two must be natural, and a meld can contain at most three wild cards (2s and Jokers). Seven cards make a Canasta. Red 3s are laid aside and replaced immediately after the deal, and score in the team's red 3s row; black 3s can only be melded when going out.</p>
   <p class="dim">A team may have only one meld of each rank, so matching cards are added to it. Click a team meld to add staged cards to it. Your team's first meld must reach the threshold shown in the status line, unless you meld your whole hand with a Canasta. The discard pile may be frozen or blocked — the game will say which. A wild card or red three anywhere in the pile freezes it, even after later cards cover it; the freezing card is shown turned at right angles in the pile.</p>
   <p class="dim">Melds show coloured ranks, with jokers as stars and wildcards on the right. A canasta of seven or more cards shows a count. Taking the pile uses the cards it needs from your hand: two matching naturals, or one match and a wild unless the pile is frozen. It can also add the top card to your team's matching meld. Stage cards to choose them yourself.</p>
+  <p class="dim"><b class="key">Coach</b> — a light bulb appears above the buttons when a better scoring line exists. Hover or click it for the plan; <span class="key">H</span> turns the Coach on or off.</p>
   <p class="dim">Press any key to close</p>
 </div></div>
 
@@ -437,6 +463,7 @@ const ACTIONS = {
   left: ['ArrowLeft'], right: ['ArrowRight'], up: ['ArrowUp'], down: ['ArrowDown'],
   action: ['Space', 'Enter'], draw: ['KeyD'], take: ['KeyT'], meld: ['KeyF'],
   discard: ['KeyX'], out: ['KeyO'], sort: ['KeyV'], clear: ['KeyC'],
+  coach: ['KeyH'],
   pause: ['Escape', 'KeyP'], leave: ['KeyQ'], mute: ['KeyM'], help: ['Slash'],
 };
 const _held = new Set(), _pressed = new Set(), _stepPressed = new Set();
@@ -889,6 +916,7 @@ function render() {
   renderHand();
   renderStatus();
   renderControls();
+  coachRefresh();
 }
 
 function validateMeld(cards, { layoff = false, allowBlackThree = false } = {}) {
@@ -1474,7 +1502,7 @@ function findBestMeld(seat) {
   return [{ kind: 'new', cards: best.cards }];
 }
 
-function findGoOutPlan(seat) {
+function findGoOutPlan(seat, { limit = Infinity } = {}) {
   const team = teamOf(seat);
   const cards = hands[seat].filter(card => !card.redThree);
   if (cards.length !== hands[seat].length) return null;
@@ -1483,8 +1511,10 @@ function findGoOutPlan(seat) {
   const priorIds = new Set(startMelds.map(meld => meld.id));
   let nextId = startMelds.length;
   const seen = new Set();
+  let nodes = 0;
 
   function search(remaining, virtualMelds, actions, usedLayoff, depth) {
+    if (++nodes > limit) return null;
     if (depth > cards.length + 4 || actions.length > 10) return null;
     const stateKey = remaining.map(card => card.id).sort((a, b) => a - b).join(',')
       + '|' + virtualMelds.map(meld => meld.cards.map(card => card.id).sort((a, b) => a - b).join('.')).join(',')
@@ -1578,6 +1608,702 @@ function humanGoOut() {
   askPrompt(`Go out now? Meld ${melded} card${melded === 1 ? '' : 's'}${tail}.`,
     () => applyGoOutPlan(0, plan),
     () => notify('Not going out.'));
+}
+
+// =============================================================================
+// THE COACH — a scoring-first evaluator that watches the human's staged move.
+// It sees only what a player at the table can see: the user's hand, the table,
+// the piles and the score. It never looks at the bots' hands. The light bulb
+// appears when another legal line is worth more than the one being staged.
+// =============================================================================
+const COACH_MARGIN = 14;
+const COACH_AVG_HAND = 11.5;
+let coachOn = saved.get('coach', true);
+let coachAdvice = null;
+let _coachCache = { sig: null, advice: null };
+let _coachReachCache = new Map();
+
+function coachCloneState() {
+  return {
+    hand: hands[0].slice(),
+    melds: melds.map((meld, id) => ({ id, team: meld.team, cards: meld.cards.slice() })),
+    nextId: melds.length,
+    melded0: meldedThisRound[0],
+    firstMeldTurn,
+    turnMeldValue,
+    partnerCount: hands[2].length,
+    oppCount: hands[1].length + hands[3].length,
+    red0: redThrees[0].length,
+    red1: redThrees[1].length,
+    stockCount: stock.length,
+    discardCount: discard.length,
+  };
+}
+
+function coachClone(state) {
+  return {
+    ...state,
+    hand: state.hand.slice(),
+    melds: state.melds.map(meld => ({ ...meld, cards: meld.cards.slice() })),
+  };
+}
+
+function coachHasCanasta(meldList, team = 0) {
+  return meldList.some(meld => meld.team === team && meld.cards.length >= 7);
+}
+
+function coachMeldStats(meldList, team) {
+  let points = 0, bonus = 0;
+  for (const meld of meldList) {
+    if (meld.team !== team) continue;
+    points += meld.cards.reduce((sum, card) => sum + card.meldValue, 0);
+    if (meld.cards.length >= 7) bonus += meld.cards.some(card => card.wild) ? 300 : 500;
+  }
+  return { points, bonus };
+}
+
+function coachRankOfMeld(meld) {
+  const natural = meld.cards.find(card => !card.wild && !card.blackThree);
+  return natural ? natural.rank : 3;
+}
+
+function coachLayoffTargets(state, cards) {
+  return state.melds.filter(meld => meld.team === 0 && validateLayoff(meld, cards).ok);
+}
+
+function coachSameRankMeld(state, cards) {
+  const natural = cards.find(card => !card.wild && !card.blackThree);
+  if (!natural) return null;
+  return state.melds.find(meld => meld.team === 0
+    && !meld.cards.some(card => card.blackThree)
+    && meld.cards.some(card => !card.wild && card.rank === natural.rank)) ?? null;
+}
+
+// What the cards left in the user's hand are likely to be worth by the end of
+// the hand. A card in a pair, a wild, or a card that can join an existing meld
+// is worth keeping; an isolated card is the one to let go.
+function coachHandPotential(state) {
+  const ours = state.melds.filter(meld => meld.team === 0);
+  const meldByRank = new Map();
+  for (const meld of ours) {
+    const natural = meld.cards.find(card => !card.wild && !card.blackThree);
+    if (natural) meldByRank.set(natural.rank, meld);
+  }
+  const naturals = state.hand.filter(card => !card.wild && !card.redThree && !card.blackThree);
+  const wilds = state.hand.filter(card => card.wild);
+  const byRank = new Map();
+  for (const card of naturals) {
+    if (!byRank.has(card.rank)) byRank.set(card.rank, []);
+    byRank.get(card.rank).push(card);
+  }
+  let value = 0;
+  for (const [rank, cards] of byRank) {
+    let p;
+    if (meldByRank.has(rank)) p = 0.95;
+    else if (cards.length >= 3) p = 0.9;
+    else if (cards.length === 2) p = wilds.length ? 0.62 : 0.47;
+    else p = 0.22;
+    for (const card of cards) value += card.meldValue * (2 * p - 1);
+  }
+  for (const card of wilds) value += card.meldValue * 0.9 + 10;
+  for (const card of state.hand) {
+    if (card.blackThree) value -= card.meldValue * 0.6;
+  }
+  for (const meld of ours) {
+    const count = meld.cards.length;
+    if (count >= 7) continue;
+    const bonus = meld.cards.some(card => card.wild) ? 300 : 500;
+    const need = 7 - count;
+    const confidence = need <= 2 ? 0.55 : need <= 4 ? 0.3 : 0.15;
+    value += bonus * confidence * (count / 7);
+    if (count === 6) value += 40;
+  }
+  return value;
+}
+
+function coachEvaluate(state, { goingOut = false } = {}) {
+  const ours = state.melds.filter(meld => meld.team === 0);
+  const theirs = state.melds.filter(meld => meld.team === 1);
+  const ourMelds = coachMeldStats(ours, 0);
+  const theirMelds = coachMeldStats(theirs, 1);
+  const melded = state.melded0 || ours.length > 0;
+  const theirMelded = theirs.length > 0;
+  const ourRed = state.red0 >= 4 ? 800 : state.red0 * 100;
+  const theirRed = state.red1 >= 4 ? 800 : state.red1 * 100;
+  const ourHand = state.hand.reduce((sum, card) => sum + card.meldValue, 0);
+  const ourPartner = state.partnerCount * COACH_AVG_HAND;
+  const theirHand = state.oppCount * COACH_AVG_HAND;
+  let value = ourMelds.points + ourMelds.bonus + (melded ? ourRed : -ourRed)
+    - ourHand - ourPartner
+    - (theirMelds.points + theirMelds.bonus + (theirMelded ? theirRed : -theirRed) - theirHand);
+  value += coachHandPotential(state);
+  if (goingOut) value += 100;
+  return value;
+}
+
+// True when the hand can still reach a first-meld threshold, with the same
+// "leave two cards or make a Canasta" rule the game enforces.
+function coachCanReach(hand, meldList, need, team = 0) {
+  if (need <= 0) return true;
+  const key = hand.map(card => card.id).sort((a, b) => a - b).join(',') + '|' + need + '|' + (coachHasCanasta(meldList, team) ? 1 : 0);
+  if (_coachReachCache.has(key)) return _coachReachCache.get(key);
+  const groups = candidateGroups(hand);
+  const pointsOf = group => group.cards.reduce((sum, card) => sum + card.meldValue, 0);
+  groups.sort((a, b) => pointsOf(b) - pointsOf(a) || b.cards.length - a.cards.length);
+  const canastaNow = coachHasCanasta(meldList, team);
+  // Most hands are decided by the greedy, highest-value groups; only fall back
+  // to a bounded search when that does not leave a legal hand behind.
+  const greedyUsed = new Set(), greedyChosen = [];
+  let greedyPoints = 0;
+  for (const group of groups) {
+    if (greedyPoints >= need) break;
+    if (group.cards.some(card => greedyUsed.has(card.id))) continue;
+    if (greedyChosen.some(other => other.rank === group.rank)) continue;
+    group.cards.forEach(card => greedyUsed.add(card.id));
+    greedyChosen.push(group);
+    greedyPoints += pointsOf(group);
+  }
+  if (greedyPoints >= need) {
+    const left = hand.length - greedyUsed.size;
+    if (left >= 2 || canastaNow || greedyChosen.some(group => group.cards.length >= 7)) {
+      _coachReachCache.set(key, true);
+      return true;
+    }
+  }
+  const chosen = [];
+  const used = new Set();
+  let nodes = 0;
+  function search(start, points) {
+    if (++nodes > 300) return false;
+    if (points >= need) {
+      const left = hand.length - used.size;
+      return left >= 2 || canastaNow || chosen.some(group => group.cards.length >= 7);
+    }
+    for (let i = start; i < groups.length; i++) {
+      const group = groups[i];
+      if (group.cards.some(card => used.has(card.id))) continue;
+      if (chosen.some(other => other.rank === group.rank)) continue;
+      group.cards.forEach(card => used.add(card.id));
+      chosen.push(group);
+      if (search(i + 1, points + pointsOf(group))) return true;
+      chosen.pop();
+      group.cards.forEach(card => used.delete(card.id));
+    }
+    return false;
+  }
+  const result = search(0, 0);
+  _coachReachCache.set(key, result);
+  return result;
+}
+
+function coachMeldActions(state) {
+  const ours = state.melds.filter(meld => meld.team === 0);
+  const wilds = state.hand.filter(card => card.wild).sort((a, b) => a.meldValue - b.meldValue || a.id - b.id);
+  const byRank = new Map();
+  for (const card of state.hand) {
+    if (card.wild || card.redThree || card.blackThree) continue;
+    if (!byRank.has(card.rank)) byRank.set(card.rank, []);
+    byRank.get(card.rank).push(card);
+  }
+  const actions = [], seen = new Set();
+  const add = action => {
+    const key = action.kind + ':' + action.cards.map(card => card.id).sort((a, b) => a - b).join(',') + ':' + (action.targetId ?? '');
+    if (seen.has(key)) return;
+    seen.add(key);
+    actions.push(action);
+  };
+  for (const [rank, naturals] of byRank) {
+    const existing = ours.find(meld => !meld.cards.some(card => card.blackThree)
+      && meld.cards.some(card => !card.wild && card.rank === rank));
+    if (existing) {
+      for (const card of naturals.concat(wilds)) {
+        if (validateLayoff(existing, [card]).ok) add({ kind: 'layoff', cards: [card], targetId: existing.id, targetRank: rank });
+      }
+      continue;
+    }
+    if (naturals.length < 2) continue;
+    for (let wildCount = 0; wildCount <= Math.min(3, wilds.length); wildCount++) {
+      const cards = naturals.concat(wilds.slice(0, wildCount));
+      if (cards.length < 3 || cards.length > 11) continue;
+      if (!validateMeld(cards).ok) continue;
+      add({ kind: 'new', cards, rank });
+    }
+  }
+  for (const meld of ours) {
+    const rank = coachRankOfMeld(meld);
+    for (const card of state.hand) {
+      if (card.redThree || card.blackThree) continue;
+      if (validateLayoff(meld, [card]).ok) add({ kind: 'layoff', cards: [card], targetId: meld.id, targetRank: rank });
+    }
+  }
+  return actions;
+}
+
+function coachApply(state, action) {
+  const next = coachClone(state);
+  const ids = new Set(action.cards.map(card => card.id));
+  next.hand = next.hand.filter(card => !ids.has(card.id));
+  let canastaAfter;
+  if (action.kind === 'new') {
+    const existing = coachSameRankMeld(state, action.cards);
+    if (existing) {
+      const target = next.melds.find(meld => meld.id === existing.id);
+      if (!target || !validateLayoff(target, action.cards).ok) return null;
+      target.cards.push(...action.cards);
+    } else {
+      if (!validateMeld(action.cards).ok) return null;
+      next.melds.push({ id: next.nextId++, team: 0, cards: action.cards.slice() });
+    }
+    canastaAfter = coachHasCanasta(next.melds, 0);
+  } else {
+    const target = next.melds.find(meld => meld.id === action.targetId);
+    if (!target || !validateLayoff(target, action.cards).ok) return null;
+    target.cards.push(...action.cards);
+    canastaAfter = coachHasCanasta(next.melds, 0);
+  }
+  if (next.hand.length <= 1 && !canastaAfter) return null;
+  const points = action.cards.reduce((sum, card) => sum + card.meldValue, 0);
+  const projected = state.turnMeldValue + points;
+  const goingOut = next.hand.length <= 1 && canastaAfter;
+  if (state.firstMeldTurn && state.turnMeldValue < threshold(0) && projected < threshold(0) && !goingOut) {
+    if (!coachCanReach(next.hand, next.melds, threshold(0) - projected, 0)) return null;
+  }
+  next.turnMeldValue = projected;
+  next.melded0 = true;
+  return next;
+}
+
+function coachDiscardOptions(state) {
+  const canasta = coachHasCanasta(state.melds, 0);
+  if (state.firstMeldTurn && state.turnMeldValue > 0 && state.turnMeldValue < threshold(0)
+    && !(state.hand.length === 1 && canasta)) return [];
+  if (state.hand.length === 1 && !canasta) return [];
+  return state.hand.filter(card => !card.redThree);
+}
+
+function coachDiscardRisk(state, card) {
+  let risk = 0;
+  for (const meld of state.melds) {
+    if (meld.team !== 1) continue;
+    if (validateLayoff(meld, [card]).ok) {
+      risk += 8 + card.meldValue * 0.4;
+      break;
+    }
+  }
+  if (state.melds.some(meld => meld.team === 0 && validateLayoff(meld, [card]).ok)) risk += 5;
+  if (card.blackThree) risk -= 10;
+  return risk;
+}
+
+function coachTerminal(state, discard) {
+  const hand = state.hand.filter(card => card.id !== discard.id);
+  const canasta = coachHasCanasta(state.melds, 0);
+  const goingOut = hand.length === 0 && canasta;
+  const value = coachEvaluate({ ...state, hand }, { goingOut }) - coachDiscardRisk(state, discard);
+  return { value, discard, goingOut };
+}
+
+function coachStateKey(state) {
+  return state.hand.map(card => card.id).sort((a, b) => a - b).join(',')
+    + '|' + state.melds.map(meld => meld.team + ':' + meld.cards.map(card => card.id).sort((a, b) => a - b).join('.')).join('|')
+    + '|' + state.turnMeldValue + '|' + (state.melded0 ? 1 : 0);
+}
+
+function coachSearch(start, { depth = 3, width = 60, budget = 10 } = {}) {
+  const handSize = start.hand.length;
+  if (handSize > 20) { depth = Math.min(depth, 2); width = Math.min(width, 20); }
+  else if (handSize > 16) { depth = Math.min(depth, 2); width = Math.min(width, 32); }
+  const deadline = performance.now() + budget;
+  let beam = [{ state: start, actions: [] }];
+  let best = null;
+  const consider = plan => { if (!best || plan.value > best.value) best = plan; };
+  for (let level = 0; level <= depth; level++) {
+    if (performance.now() > deadline) break;
+    const next = [];
+    for (const node of beam) {
+      if (performance.now() > deadline) break;
+      if (!node.state.hand.length) {
+        if (coachHasCanasta(node.state.melds, 0)) {
+          consider({ value: coachEvaluate(node.state, { goingOut: true }), actions: node.actions, discard: null, goingOut: true });
+        }
+        continue;
+      }
+      let checked = 0;
+      for (const card of coachDiscardOptions(node.state)) {
+        if ((checked++ & 15) === 0 && performance.now() > deadline) break;
+        const terminal = coachTerminal(node.state, card);
+        consider({ value: terminal.value, actions: node.actions, discard: card, goingOut: terminal.goingOut });
+      }
+      if (level === depth) continue;
+      const actions = coachMeldActions(node.state);
+      for (let index = 0; index < actions.length; index++) {
+        if ((index & 15) === 0 && performance.now() > deadline) break;
+        const action = actions[index];
+        const applied = coachApply(node.state, action);
+        if (!applied) continue;
+        if (!applied.hand.length) {
+          if (coachHasCanasta(applied.melds, 0)) {
+            consider({ value: coachEvaluate(applied, { goingOut: true }), actions: node.actions.concat(action), discard: null, goingOut: true });
+          }
+          continue;
+        }
+        next.push({ state: applied, actions: node.actions.concat(action) });
+      }
+    }
+    if (level === depth || !next.length) break;
+    const seen = new Set(), ranked = [];
+    for (const node of next) {
+      const key = coachStateKey(node.state);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      ranked.push(node);
+    }
+    ranked.sort((a, b) => coachEvaluate(b.state) - coachEvaluate(a.state));
+    beam = ranked.slice(0, width);
+  }
+  return best;
+}
+
+function coachSearchAfter(state, action) {
+  const applied = coachApply(state, action);
+  if (!applied) return null;
+  if (!applied.hand.length) {
+    if (!coachHasCanasta(applied.melds, 0)) return null;
+    return { value: coachEvaluate(applied, { goingOut: true }), actions: [action], discard: null, goingOut: true };
+  }
+  const rest = coachSearch(applied);
+  if (!rest) return null;
+  return { ...rest, actions: [action, ...rest.actions] };
+}
+
+function coachGoOutValue(plan) {
+  const state = coachCloneState();
+  const ordered = state.melds.filter(meld => meld.team === 0).map((meld, id) => ({ id, ref: meld }));
+  for (const action of plan.actions) {
+    const ids = new Set(action.cards.map(card => card.id));
+    state.hand = state.hand.filter(card => !ids.has(card.id));
+    if (action.kind === 'new') {
+      const meld = { id: state.nextId++, team: 0, cards: action.cards.slice() };
+      state.melds.push(meld);
+      ordered.push({ id: action.id, ref: meld });
+    } else {
+      const entry = ordered.find(item => item.id === action.targetId);
+      if (entry) {
+        action.targetRank = coachRankOfMeld(entry.ref);
+        entry.ref.cards.push(...action.cards);
+      }
+    }
+    state.turnMeldValue += action.cards.reduce((sum, card) => sum + card.meldValue, 0);
+    state.melded0 = true;
+  }
+  if (plan.discard) state.hand = state.hand.filter(card => card.id !== plan.discard.id);
+  const value = coachEvaluate(state, { goingOut: true }) + (plan.concealed ? 100 : 0);
+  return { value, actions: plan.actions, discard: plan.discard, goingOut: true, concealed: plan.concealed };
+}
+
+function coachTakeState(stagedCards) {
+  const top = topCard();
+  if (!top || top.redThree || top.blackThree || top.wild) return null;
+  const state = coachCloneState();
+  const frozen = !meldedThisRound[0] || discard.some(card => card.wild || card.redThree);
+  const evaluate = cards => {
+    const promised = [top, ...cards];
+    const bothMeld = coachSameRankMeld(state, promised);
+    let target = null, check;
+    if (frozen) {
+      check = validateMeld(promised);
+      if (!check.ok) return { ok: false, check, promised, target: null, frozenWild: false };
+      if (!check.natural) return { ok: false, check, promised, target: null, frozenWild: true };
+      target = bothMeld;
+    } else {
+      target = coachLayoffTargets(state, promised)[0] ?? bothMeld;
+    }
+    check = target ? validateLayoff(target, promised) : validateMeld(promised);
+    return { ok: check.ok, check, promised, target, frozenWild: false };
+  };
+  let usedCards = stagedCards.slice();
+  let attempt = evaluate(usedCards);
+  if (!attempt.ok) {
+    const stagedIds = new Set(stagedCards.map(card => card.id));
+    const naturalCount = usedCards.filter(card => !card.wild && card.rank === top.rank).length;
+    const matching = state.hand.filter(card => !stagedIds.has(card.id)
+      && !card.wild && !card.redThree && card.rank === top.rank);
+    const wilds = frozen ? [] : state.hand
+      .filter(card => !stagedIds.has(card.id) && card.wild)
+      .sort((a, b) => a.meldValue - b.meldValue);
+    const fill = matching.slice(0, Math.max(0, 2 - naturalCount)).concat(wilds.slice(0, 1));
+    for (const card of fill) {
+      usedCards = usedCards.concat(card);
+      attempt = evaluate(usedCards);
+      if (attempt.ok) break;
+    }
+  }
+  if (!attempt.ok) return null;
+  const { check, target, promised } = attempt;
+  const usedIds = new Set(usedCards.map(card => card.id));
+  const handAfterTake = state.hand.length - usedCards.length + Math.max(0, discard.length - 1);
+  const canastaAfter = coachHasCanasta(state.melds, 0) || (target
+    ? target.cards.length + promised.length >= 7
+    : promised.length >= 7);
+  const goingOut = handAfterTake <= 1 && canastaAfter;
+  const firstMeldPending = !meldedThisRound[0];
+  if (firstMeldPending && check.points < threshold(0) && !goingOut) {
+    const remaining = state.hand.filter(card => !usedIds.has(card.id));
+    if (!coachCanReach(remaining, state.melds, threshold(0) - check.points, 0)) return null;
+  }
+  if (handAfterTake <= 1 && !canastaAfter) return null;
+  state.hand = state.hand.filter(card => !usedIds.has(card.id));
+  if (target) target.cards.push(...promised);
+  else state.melds.push({ id: state.nextId++, team: 0, cards: promised.slice() });
+  state.hand.push(...discard.slice(0, -1));
+  const reds = state.hand.filter(card => card.redThree).length;
+  state.red0 += reds;
+  state.hand = state.hand.filter(card => !card.redThree);
+  state.turnMeldValue = check.points;
+  state.melded0 = true;
+  state.discardCount = 0;
+  return { state, target, usedCards, promised, check, goingOut };
+}
+
+function coachDrawEstimate(base) {
+  if (!stock.length) return coachEvaluate(base);
+  const candidates = [];
+  const step = Math.max(1, Math.floor(stock.length / 4));
+  for (let i = 0; i < stock.length && candidates.length < 4; i += step) {
+    const card = stock[i];
+    if (card && !card.redThree) candidates.push(card);
+  }
+  if (!candidates.length) return coachEvaluate(base);
+  const deadline = performance.now() + 8;
+  let sum = 0, count = 0;
+  for (const card of candidates) {
+    if (performance.now() > deadline) break;
+    const state = coachClone(base);
+    state.hand.push(card);
+    const plan = coachSearch(state, { depth: 1, width: 16, budget: 3 });
+    if (plan) { sum += plan.value; count++; }
+  }
+  return count ? sum / count : coachEvaluate(base);
+}
+
+function coachTakeReason(take, top) {
+  const used = take.usedCards.map(shortCard).join(' ');
+  if (take.target) {
+    return `the ${shortCard(top)}${used ? ` with ${used}` : ''} joins your ${rankLabel(coachRankOfMeld(take.target))} meld.`;
+  }
+  return `the ${shortCard(top)}${used ? ` plus ${used}` : ''} makes a meld.`;
+}
+
+function coachDrawAdvice() {
+  _coachReachCache = new Map();
+  const stagedCards = hands[0].filter(card => staged.has(card.id));
+  const take = coachTakeState(stagedCards);
+  if (!take) return null;
+  if (!stock.length) {
+    return { text: `Take the pile (${discard.length} card${discard.length === 1 ? '' : 's'}): the stock is empty, so drawing would end the hand. ${coachTakeReason(take, topCard())}`, kind: 'draw' };
+  }
+  // A one- or two-card pile gives no real card advantage. Taking it can still
+  // be right, but it is not a clear mistake to draw instead, so stay quiet
+  // unless the pile hides a wild card or a red three.
+  const tempting = discard.some(card => card.wild || card.redThree);
+  if (discard.length < 3 && !tempting) return null;
+  const takePlan = coachSearch(take.state);
+  if (!takePlan) return null;
+  const redChance = stock.length ? stock.filter(card => card.redThree).length / stock.length : 0;
+  const drawValue = coachDrawEstimate(coachCloneState()) + redChance * 100;
+  if (takePlan.value - drawValue > COACH_MARGIN) {
+    return { text: `Take the pile (${discard.length} card${discard.length === 1 ? '' : 's'}): ${coachTakeReason(take, topCard())}`, kind: 'draw' };
+  }
+  if (drawValue - takePlan.value > COACH_MARGIN * 2) {
+    return { text: `Drawing is better: taking the pile would add ${Math.max(0, discard.length - 1)} cards you cannot meld.`, kind: 'draw' };
+  }
+  return null;
+}
+
+function coachIntent() {
+  const cards = hands[0].filter(card => staged.has(card.id));
+  if (!cards.length) return null;
+  const state = coachCloneState();
+  if (cards.length >= 3) {
+    const check = validateMeld(cards);
+    if (check.ok) return { type: 'meld', action: { kind: 'new', cards, rank: check.rank } };
+  }
+  const targets = coachLayoffTargets(state, cards);
+  if (targets.length === 1) {
+    return { type: 'meld', action: { kind: 'layoff', cards, targetId: targets[0].id, targetRank: coachRankOfMeld(targets[0]) } };
+  }
+  if (cards.length === 1) return { type: 'single', card: cards[0], layoff: targets[0] ?? null };
+  return null;
+}
+
+function coachCardsText(cards) {
+  const naturals = cards.filter(card => !card.wild).sort((a, b) => a.rank - b.rank || a.suit - b.suit);
+  const wilds = cards.filter(card => card.wild);
+  return naturals.map(shortCard).join(' ') + (wilds.length ? `${naturals.length ? ' + ' : ''}${wilds.map(shortCard).join(' ')}` : '');
+}
+
+function coachPlanText(plan) {
+  const parts = [];
+  for (const action of plan.actions.slice(0, 3)) {
+    if (action.kind === 'new') {
+      const points = action.cards.reduce((sum, card) => sum + card.meldValue, 0);
+      const canasta = action.cards.length >= 7
+        ? (action.cards.some(card => card.wild) ? ' — mixed Canasta' : ' — natural Canasta')
+        : '';
+      parts.push(`meld ${coachCardsText(action.cards)} for ${points}${canasta}`);
+    } else {
+      const rank = action.targetRank;
+      parts.push(`lay ${shortCard(action.cards[0])} on your${rank ? ` ${rankLabel(rank)}` : ''} meld`);
+    }
+  }
+  if (plan.actions.length > 3) parts.push(`and ${plan.actions.length - 3} more meld${plan.actions.length - 3 === 1 ? '' : 's'}`);
+  if (plan.discard) parts.push(`discard ${shortCard(plan.discard)}`);
+  if (plan.goingOut) parts.push(plan.discard ? 'and go out' : 'go out');
+  return parts.join(', ');
+}
+
+function coachCardUse(card, state) {
+  if (card.wild) return 'is a wild card';
+  const lay = state.melds.find(meld => meld.team === 0 && validateLayoff(meld, [card]).ok);
+  if (lay) return `can join your ${rankLabel(coachRankOfMeld(lay))} meld`;
+  const theirs = state.melds.find(meld => meld.team === 1 && validateLayoff(meld, [card]).ok);
+  if (theirs) return `would help the opponents' ${rankLabel(coachRankOfMeld(theirs))} meld`;
+  const count = state.hand.filter(item => !item.wild && !item.redThree && item.rank === card.rank).length;
+  if (count >= 3) return `is one of ${count} ${rankLabel(card.rank)}s`;
+  if (count === 2) return `is one of a pair of ${rankLabel(card.rank)}s`;
+  if (card.blackThree) return 'blocks the pile and can only be melded when going out';
+  return 'cannot help your melds';
+}
+
+function coachAdviceFromPlans(best, intended, intendedPlan, state) {
+  let why = '';
+  if (intended.type === 'single') {
+    const inPlan = best.actions.some(action => action.cards.some(card => card.id === intended.card.id));
+    if (inPlan) {
+      return { text: `Keep ${shortCard(intended.card)} and ${coachPlanText(best)}.`, kind: 'move' };
+    }
+  }
+  if (best.goingOut) {
+    return { text: `Go out now: ${coachPlanText(best)}.`, kind: 'goout' };
+  }
+  if (intended.type === 'single') {
+    if (best.discard && best.discard.id === intended.card.id) {
+      return { text: `Meld first: ${coachPlanText(best)}.`, kind: 'move' };
+    }
+    if (best.discard) {
+      why = `Better discard: ${shortCard(best.discard)} (${best.discard.meldValue} pts, ${coachCardUse(best.discard, state)}) than ${shortCard(intended.card)} (${intended.card.meldValue} pts, ${coachCardUse(intended.card, state)}).`;
+    }
+  } else if (intended.type === 'meld' && intendedPlan) {
+    why = `The staged ${coachCardsText(intended.action.cards)} line is worth less.`;
+  } else if (best.actions.length) {
+    why = 'Meld before discarding.';
+  }
+  return { text: `${coachPlanText(best)}.${why ? ` ${why}` : ''}`, kind: 'move' };
+}
+
+function coachCompute() {
+  _coachReachCache = new Map();
+  if (state !== 'playing' || turn !== 0 || phase === 'deal' || phase === 'between') return null;
+  if (phase === 'draw') return coachDrawAdvice();
+  if (phase !== 'play') return null;
+  const state0 = coachCloneState();
+  const best = coachSearch(state0);
+  if (!best) return null;
+  const goOutPlan = findGoOutPlan(0, { limit: hands[0].length > 16 ? 250 : 600 });
+  const goOut = goOutPlan ? coachGoOutValue(goOutPlan) : null;
+  const intended = coachIntent();
+  if (goOut) {
+    const goOutIds = new Set(goOut.actions.flatMap(action => action.cards.map(card => card.id)));
+    const alreadyGoing = intended && intended.type === 'meld' && intended.action.cards.every(card => goOutIds.has(card.id));
+    if (!alreadyGoing && goOut.value > best.value + COACH_MARGIN) {
+      return { text: `Go out now: ${coachPlanText(goOut)}. Going out scores 100 and ends the hand.`, kind: 'goout' };
+    }
+  }
+  if (!intended) {
+    if (best.goingOut) return { text: `Go out now: ${coachPlanText(best)}. Going out scores 100 and ends the hand.`, kind: 'goout' };
+    if (state0.firstMeldTurn && state0.turnMeldValue > 0 && state0.turnMeldValue < threshold(0) && best.actions.length) {
+      const need = threshold(0) - state0.turnMeldValue;
+      return { text: `Meld ${need} more point${need === 1 ? '' : 's'} to reach ${threshold(0)}: ${coachPlanText(best)}.`, kind: 'move' };
+    }
+    return null;
+  }
+  if (intended.type === 'single') {
+    const discardPlan = coachTerminal(state0, intended.card);
+    const layPlan = intended.layoff
+      ? coachSearchAfter(state0, { kind: 'layoff', cards: [intended.card], targetId: intended.layoff.id, targetRank: coachRankOfMeld(intended.layoff) })
+      : null;
+    if (layPlan && Math.abs(layPlan.value - best.value) <= COACH_MARGIN) return null;
+    const intendedBest = layPlan && layPlan.value > discardPlan.value ? layPlan : discardPlan;
+    if (best.value - intendedBest.value <= COACH_MARGIN) return null;
+    return coachAdviceFromPlans(best, intended, intendedBest, state0);
+  }
+  if (intended.type === 'meld') {
+    const inBest = intended.action.cards.every(card => best.actions.some(action => action.cards.some(item => item.id === card.id)));
+    if (inBest) return null;
+    const intendedPlan = coachSearchAfter(state0, intended.action);
+    if (!intendedPlan) return { text: `That staged move is not legal. ${coachPlanText(best)} is available.`, kind: 'move' };
+    if (best.value - intendedPlan.value <= COACH_MARGIN) return null;
+    const first = best.actions[0];
+    if (first && first.kind === intended.action.kind
+      && first.cards.length === intended.action.cards.length
+      && first.cards.every(card => intended.action.cards.some(item => item.id === card.id))) return null;
+    return coachAdviceFromPlans(best, intended, intendedPlan, state0);
+  }
+  return null;
+}
+
+function coachSignature() {
+  return [
+    state, phase, turn, coachOn ? 1 : 0,
+    hands[0].map(card => card.id).sort((a, b) => a - b).join(','),
+    staged.size ? [...staged].sort((a, b) => a - b).join(',') : '',
+    melds.map(meld => meld.team + ':' + meld.cards.map(card => card.id).sort((a, b) => a - b).join('.')).join('|'),
+    turnMeldValue, firstMeldTurn ? 1 : 0, meldedThisRound[0] ? 1 : 0,
+    discard.length, discard.length ? topCard().id : '',
+    stock.length, redThrees[0].length, redThrees[1].length,
+    totals[0], totals[1], hands[1].length + hands[3].length, hands[2].length,
+  ].join(';');
+}
+
+function renderCoach() {
+  const show = !!coachAdvice && state === 'playing' && coachOn;
+  $('coach').classList.toggle('show', show);
+  $('btn-coach').classList.toggle('on', coachOn);
+  $('btn-coach').textContent = coachOn ? 'Coach on · H' : 'Coach off · H';
+  if (!show) {
+    $('coach').classList.remove('open');
+    $('coach-tip').textContent = '';
+    $('coach-btn').title = 'Coach advice';
+    $('coach-btn').setAttribute('aria-label', 'Coach advice');
+    return;
+  }
+  $('coach-tip').innerHTML = '<b>Coach:</b> ';
+  $('coach-tip').append(document.createTextNode(coachAdvice.text));
+  $('coach-btn').title = coachAdvice.text;
+  $('coach-btn').setAttribute('aria-label', `Coach: ${coachAdvice.text}`);
+}
+
+function coachRefresh() {
+  if (!coachOn || state !== 'playing') { coachAdvice = null; renderCoach(); return; }
+  const sig = coachSignature();
+  if (sig !== _coachCache.sig) {
+    let advice = null;
+    try { advice = coachCompute(); } catch (error) { console.warn('Coach failed:', error); }
+    _coachCache = { sig, advice };
+  }
+  coachAdvice = _coachCache.advice;
+  renderCoach();
+}
+
+function toggleCoach() {
+  coachOn = !coachOn;
+  saved.set('coach', coachOn);
+  _coachCache = { sig: null, advice: null };
+  if (!coachOn) coachAdvice = null;
+  notify(coachOn ? 'Coach on. A light bulb marks a better move; click it to read why.' : 'Coach off.');
+  render();
+  if (coachOn) sound(760, 0.08, 'triangle', 980, 0.07);
+  else sound(420, 0.06, 'triangle', 300, 0.06);
 }
 
 function sortHumanHand() {
@@ -1796,6 +2522,11 @@ function build() {
   $('btn-out').addEventListener('click', humanGoOut);
   $('btn-sort').addEventListener('click', sortHumanHand);
   $('btn-clear').addEventListener('click', clearStaged);
+  $('btn-coach').addEventListener('click', toggleCoach);
+  $('coach-btn').addEventListener('click', () => $('coach').classList.toggle('open'));
+  document.addEventListener('pointerdown', event => {
+    if (!event.target.closest('#coach')) $('coach').classList.remove('open');
+  });
   $('btn-help').addEventListener('click', () => { _helpFrom = state; show('help'); });
   $('scorecard-close').addEventListener('click', closeScorecard);
   $('prompt-yes').addEventListener('click', () => resolvePrompt(true));
@@ -1922,6 +2653,7 @@ function frame() {
   const dt = Math.min(_clock.getDelta(), 0.1);       // a hidden window must not leap ahead
 
   if (wasPressed('mute')) { _muted = !_muted; saved.set('muted', _muted); }
+  if (state !== 'help' && wasPressed('coach')) toggleCoach();
   if (state === 'help') {
     if (_pressed.size) show(_helpFrom);
   } else if (state === 'scorecard') {
