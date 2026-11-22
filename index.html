@@ -109,12 +109,16 @@
   button.ui.primary { border-color: var(--accent); color: var(--accent); }
   button.ui.wide { grid-column: 1 / -1; }
 
-  /* The coach: a light bulb that appears only when a better move is available. */
-  #coach { position: fixed; right: 18px; bottom: 202px; z-index: 32; display: none; }
-  #coach.show { display: block; }
-  #coach-btn { all: unset; pointer-events: auto; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; color: var(--yellow); background: color-mix(in srgb, var(--background) 90%, var(--yellow)); border: 1px solid color-mix(in srgb, var(--yellow) 65%, transparent); box-shadow: 0 0 12px color-mix(in srgb, var(--yellow) 30%, transparent); animation: coach-glow 2s ease-in-out infinite; }
-  #coach-btn:hover, #coach-btn:focus-visible { color: var(--background); background: var(--yellow); outline: 2px solid var(--yellow); outline-offset: 2px; }
-  #coach-btn svg { width: 23px; height: 23px; fill: currentColor; }
+  /* The coach: a labelled light bulb that is always visible while the Coach is
+     on, and lights up when there is a better move or a suggested line. */
+  #coach { position: fixed; right: 18px; bottom: 202px; z-index: 32; display: none; align-items: center; gap: 7px; }
+  #coach.show { display: flex; }
+  #coach-label { font-size: 10px; font-weight: 700; letter-spacing: 1.6px; color: color-mix(in srgb, var(--yellow) 70%, var(--foreground)); opacity: 0.85; transition: opacity 120ms ease, color 120ms ease; }
+  #coach.advice #coach-label { color: var(--yellow); opacity: 1; }
+  #coach-btn { all: unset; pointer-events: auto; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; cursor: pointer; color: color-mix(in srgb, var(--yellow) 70%, var(--foreground)); background: color-mix(in srgb, var(--background) 92%, var(--yellow)); border: 1px solid color-mix(in srgb, var(--yellow) 40%, transparent); opacity: 0.88; transition: opacity 120ms ease, color 120ms ease, background 120ms ease; }
+  #coach.advice #coach-btn { color: var(--yellow); opacity: 1; border-color: color-mix(in srgb, var(--yellow) 65%, transparent); box-shadow: 0 0 12px color-mix(in srgb, var(--yellow) 30%, transparent); animation: coach-glow 2s ease-in-out infinite; }
+  #coach-btn:hover, #coach-btn:focus-visible { color: var(--background); background: var(--yellow); opacity: 1; outline: 2px solid var(--yellow); outline-offset: 2px; }
+  #coach-btn svg { width: 25px; height: 25px; fill: currentColor; }
   @keyframes coach-glow {
     0%, 100% { box-shadow: 0 0 10px color-mix(in srgb, var(--yellow) 24%, transparent); }
     50% { box-shadow: 0 0 22px color-mix(in srgb, var(--yellow) 55%, transparent); }
@@ -251,6 +255,7 @@
 </div>
 
 <div id="coach">
+  <div id="coach-label">COACH</div>
   <button id="coach-btn" title="Coach advice" aria-label="Coach advice">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg>
   </button>
@@ -271,7 +276,7 @@
   <h1>CANASTA</h1>
   <p>Classic four-handed partnership Canasta. Beat 5,000 points with your partner.</p>
   <p>Rules explain every rejected move — if you cannot do something, the game tells you why.</p>
-  <p>A <span class="key">light bulb</span> appears when the Coach sees a better scoring move. Click it for the plan.</p>
+  <p>A <span class="key">COACH</span> light bulb at the bottom right lights up when the Coach sees a better scoring move. Click it for the plan.</p>
   <p><span class="key">Space</span> = new game · <span class="key">H</span> = Coach on/off · <span class="key">?</span> for controls and rules</p>
   <p class="dim">← → choose cards · F meld or lay off · X discard</p>
 </div></div>
@@ -319,7 +324,7 @@
   <p class="dim">Make melds of 3+ equal cards. At least two must be natural, and a meld can contain at most three wild cards (2s and Jokers). Seven cards make a Canasta. Red 3s are laid aside and replaced immediately after the deal, and score in the team's red 3s row; black 3s can only be melded when going out.</p>
   <p class="dim">A team may have only one meld of each rank, so matching cards are added to it. Click a team meld to add staged cards to it. Your team's first meld must reach the threshold shown in the status line, unless you meld your whole hand with a Canasta. The discard pile may be frozen or blocked — the game will say which. A wild card or red three anywhere in the pile freezes it, even after later cards cover it; the freezing card is shown turned at right angles in the pile.</p>
   <p class="dim">Melds show coloured ranks, with jokers as stars and wildcards on the right. A canasta of seven or more cards shows a count. Taking the pile uses the cards it needs from your hand: two matching naturals, or one match and a wild unless the pile is frozen. It can also add the top card to your team's matching meld. Stage cards to choose them yourself.</p>
-  <p class="dim"><b class="key">Coach</b> — a light bulb appears above the buttons when a better scoring line exists. Hover or click it for the plan; <span class="key">H</span> turns the Coach on or off.</p>
+  <p class="dim"><b class="key">Coach</b> — the COACH light bulb at the bottom right stays dim while the Coach is on and lights up when it has a better scoring line. Hover or click it for the plan; <span class="key">H</span> turns the Coach on or off.</p>
   <p class="dim">Press any key to close</p>
 </div></div>
 
@@ -2225,6 +2230,7 @@ function coachCompute() {
       const need = threshold(0) - state0.turnMeldValue;
       return { text: `Meld ${need} more point${need === 1 ? '' : 's'} to reach ${threshold(0)}: ${coachPlanText(best)}.`, kind: 'move' };
     }
+    if (best.actions.length) return { text: coachPlanText(best), kind: 'hint' };
     return null;
   }
   if (intended.type === 'single') {
@@ -2266,15 +2272,27 @@ function coachSignature() {
 }
 
 function renderCoach() {
-  const show = !!coachAdvice && state === 'playing' && coachOn;
+  const show = coachOn && state === 'playing';
   $('coach').classList.toggle('show', show);
+  $('coach').classList.toggle('advice', !!coachAdvice);
   $('btn-coach').classList.toggle('on', coachOn);
   $('btn-coach').textContent = coachOn ? 'Coach on · H' : 'Coach off · H';
   if (!show) {
-    $('coach').classList.remove('open');
+    $('coach').classList.remove('open', 'advice');
     $('coach-tip').textContent = '';
     $('coach-btn').title = 'Coach advice';
     $('coach-btn').setAttribute('aria-label', 'Coach advice');
+    return;
+  }
+  if (!coachAdvice) {
+    let hint = 'Coach is on.';
+    if (turn !== 0) hint += ' Waiting for your turn.';
+    else if (phase === 'draw') hint += ' Draw or take the pile; I will mark a better move.';
+    else if (phase === 'deal' || phase === 'between') hint += ' Dealing the next hand.';
+    else hint += ' No better move right now. Stage cards to check.';
+    $('coach-tip').textContent = hint;
+    $('coach-btn').title = hint;
+    $('coach-btn').setAttribute('aria-label', hint);
     return;
   }
   $('coach-tip').innerHTML = '<b>Coach:</b> ';
@@ -2300,7 +2318,7 @@ function toggleCoach() {
   saved.set('coach', coachOn);
   _coachCache = { sig: null, advice: null };
   if (!coachOn) coachAdvice = null;
-  notify(coachOn ? 'Coach on. A light bulb marks a better move; click it to read why.' : 'Coach off.');
+  notify(coachOn ? 'Coach on. The COACH light bulb at the bottom right lights up when I have a better move; click it for the plan.' : 'Coach off.');
   render();
   if (coachOn) sound(760, 0.08, 'triangle', 980, 0.07);
   else sound(420, 0.06, 'triangle', 300, 0.06);
