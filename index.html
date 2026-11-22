@@ -1684,6 +1684,23 @@ function coachHasCanasta(meldList, team = 0) {
   return meldList.some(meld => meld.team === team && meld.cards.length >= 7);
 }
 
+// The first meld threshold only constrains the team until it has met it. That
+// can be at the start of the turn, or part-way through a turn after taking the
+// pile. After that, high cards are still valuable, but not threshold fuel.
+function coachFirstMeldPending(state) {
+  if (!state.melded0 && !state.melds.some(meld => meld.team === 0)) return true;
+  return !!state.firstMeldTurn && state.turnMeldValue < threshold(0);
+}
+
+// Is there a lower-value singleton in hand that is a safer discard than this
+// high card while the first meld is still pending?
+function coachLowerSingleton(state, card) {
+  return state.hand.some(other => other.id !== card.id
+    && !other.wild && !other.redThree
+    && other.meldValue < card.meldValue
+    && state.hand.filter(item => !item.wild && !item.redThree && item.rank === other.rank).length === 1);
+}
+
 function coachMeldStats(meldList, team) {
   let points = 0, bonus = 0;
   for (const meld of meldList) {
@@ -1713,7 +1730,9 @@ function coachSameRankMeld(state, cards) {
 
 // What the cards left in the user's hand are likely to be worth by the end of
 // the hand. A card in a pair, a wild, or a card that can join an existing meld
-// is worth keeping; an isolated card is the one to let go.
+// is worth keeping. While the first meld is still pending, a lone high card is
+// worth more than its face value because it is fuel for the threshold; late in
+// the stock, that premium fades and the hand penalty matters more.
 function coachHandPotential(state) {
   const ours = state.melds.filter(meld => meld.team === 0);
   const meldByRank = new Map();
@@ -1728,6 +1747,12 @@ function coachHandPotential(state) {
     if (!byRank.has(card.rank)) byRank.set(card.rank, []);
     byRank.get(card.rank).push(card);
   }
+  const firstMeldPending = coachFirstMeldPending(state);
+  const firstMeldNeed = threshold(0);
+  const stockFactor = Math.min(1, Math.max(0.25, (state.stockCount ?? 60) / 25));
+  const premium = firstMeldPending
+    ? (firstMeldNeed >= 120 ? 1.7 : firstMeldNeed >= 90 ? 1.65 : 1.6) * stockFactor
+    : 0;
   let value = 0;
   for (const [rank, cards] of byRank) {
     let p;
@@ -1736,6 +1761,7 @@ function coachHandPotential(state) {
     else if (cards.length === 2) p = wilds.length ? 0.62 : 0.47;
     else p = 0.22;
     for (const card of cards) value += card.meldValue * (2 * p - 1);
+    if (premium && cards.length === 1) value += Math.max(0, cards[0].meldValue - 5) * premium;
   }
   for (const card of wilds) value += card.meldValue * 0.9 + 10;
   for (const card of state.hand) {
@@ -1915,13 +1941,10 @@ function coachDiscardOptions(state) {
 
 function coachDiscardRisk(state, card) {
   let risk = 0;
-  for (const meld of state.melds) {
-    if (meld.team !== 1) continue;
-    if (validateLayoff(meld, [card]).ok) {
-      risk += 8 + card.meldValue * 0.4;
-      break;
-    }
-  }
+  const opponentMelds = state.melds.filter(meld => meld.team === 1);
+  const visibleLayoff = opponentMelds.some(meld => validateLayoff(meld, [card]).ok);
+  if (visibleLayoff) risk += 8 + card.meldValue * 0.4;
+  else risk += card.meldValue * (opponentMelds.length ? 0.15 : 0.35);
   if (state.melds.some(meld => meld.team === 0 && validateLayoff(meld, [card]).ok)) risk += 5;
   if (card.blackThree) risk -= 10;
   return risk;
@@ -2204,6 +2227,9 @@ function coachCardUse(card, state) {
   if (count >= 3) return `is one of ${count} ${rankLabel(card.rank)}s`;
   if (count === 2) return `is one of a pair of ${rankLabel(card.rank)}s`;
   if (card.blackThree) return 'blocks the pile and can only be melded when going out';
+  if (coachFirstMeldPending(state) && card.meldValue >= 10) {
+    return `is worth keeping for your ${threshold(0)}-point first meld`;
+  }
   return 'cannot help your melds';
 }
 
@@ -2220,7 +2246,7 @@ function coachAdviceFromPlans(best, intended, intendedPlan, state) {
   }
   if (intended.type === 'single') {
     if (best.discard && best.discard.id === intended.card.id) {
-      return { text: `Meld first: ${coachPlanText(best)}.`, kind: 'move' };
+      return best.actions.length ? { text: `Meld first: ${coachPlanText(best)}.`, kind: 'move' } : null;
     }
     if (best.discard) {
       why = `Better discard: ${shortCard(best.discard)} (${best.discard.meldValue} pts, ${coachCardUse(best.discard, state)}) than ${shortCard(intended.card)} (${intended.card.meldValue} pts, ${coachCardUse(intended.card, state)}).`;
@@ -2267,7 +2293,14 @@ function coachCompute() {
       : null;
     if (layPlan && Math.abs(layPlan.value - best.value) <= COACH_MARGIN) return null;
     const intendedBest = layPlan && layPlan.value > discardPlan.value ? layPlan : discardPlan;
-    if (best.value - intendedBest.value <= COACH_MARGIN) return null;
+    const highCardForFirstMeld = intended.card.meldValue >= 10
+      && !intended.card.wild
+      && best.discard
+      && best.discard.id !== intended.card.id
+      && coachFirstMeldPending(state0)
+      && state0.hand.filter(card => !card.wild && !card.redThree && card.rank === intended.card.rank).length === 1
+      && coachLowerSingleton(state0, intended.card);
+    if (!highCardForFirstMeld && best.value - intendedBest.value <= COACH_MARGIN) return null;
     return coachAdviceFromPlans(best, intended, intendedBest, state0);
   }
   if (intended.type === 'meld') {
