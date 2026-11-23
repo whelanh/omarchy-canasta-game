@@ -1751,7 +1751,7 @@ function coachHandPotential(state) {
   const firstMeldNeed = threshold(0);
   const stockFactor = Math.min(1, Math.max(0.25, (state.stockCount ?? 60) / 25));
   const premium = firstMeldPending
-    ? (firstMeldNeed >= 120 ? 1.7 : firstMeldNeed >= 90 ? 1.65 : 1.6) * stockFactor
+    ? (firstMeldNeed >= 120 ? 0.8 : firstMeldNeed >= 90 ? 0.7 : 0.6) * stockFactor
     : 0;
   let value = 0;
   for (const [rank, cards] of byRank) {
@@ -1760,12 +1760,12 @@ function coachHandPotential(state) {
     else if (cards.length >= 3) p = 0.9;
     else if (cards.length === 2) p = wilds.length ? 0.62 : 0.47;
     else p = 0.22;
-    for (const card of cards) value += card.meldValue * (2 * p - 1);
+    for (const card of cards) value += card.meldValue * (2 * p);
     if (premium && cards.length === 1) value += Math.max(0, cards[0].meldValue - 5) * premium;
   }
   for (const card of wilds) value += card.meldValue * 0.9 + 10;
   for (const card of state.hand) {
-    if (card.blackThree) value -= card.meldValue * 0.6;
+    if (card.blackThree) value += card.meldValue * 0.4;
   }
   for (const meld of ours) {
     const count = meld.cards.length;
@@ -1946,14 +1946,14 @@ function coachDiscardRisk(state, card) {
   if (oppLayoff) {
     const count = oppLayoff.cards.length;
     if (count >= 7) {
-      risk += 4 + card.meldValue * 0.4;
+      risk += card.meldValue + 2;
     } else {
-      // Handing an opponent a card for a meld they already started pushes them
-      // toward a canasta; price the giveaway by how close they already are.
+      // Handing an opponent a card for a meld they already started gives them
+      // its value and pushes them toward a canasta.
       const bonus = oppLayoff.cards.some(c => c.wild) ? 300 : 500;
       const need = 7 - count;
       const confidence = need <= 2 ? 0.55 : need <= 4 ? 0.3 : 0.15;
-      risk += bonus * confidence / 7;
+      risk += card.meldValue + bonus * confidence / 7;
       if (count === 6) risk += bonus;
     }
   } else {
