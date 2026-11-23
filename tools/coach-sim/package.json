@@ -1,0 +1,9 @@
+{
+  "name": "canasta-coach-sim",
+  "private": true,
+  "type": "module",
+  "description": "Head-to-head simulation harness for the Canasta Coach's strategies.",
+  "devDependencies": {
+    "playwright-core": "^1.49.0"
+  }
+}
