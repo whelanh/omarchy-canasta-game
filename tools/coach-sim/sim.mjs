@@ -22,18 +22,19 @@ const MATCH = process.env.MATCH === '1';
 const POLICIES = JSON.parse(process.env.POLICIES ?? '[{"name":"current","goout":100}]');
 const CHROME = process.env.CHROME ?? '/usr/bin/chromium';
 
-const harness = buildHarness();
+const harness = process.env.HARNESS ? process.env.HARNESS : buildHarness();
 const browser = await chromium.launch({ executablePath: CHROME, headless: true, args: ['--no-sandbox'] });
 
 async function runPolicy(p) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
+  const h = p.harness ?? harness;
   const params = new URLSearchParams();
   params.set('wildpenalty', String(p.wp ?? 0));
   params.set('progressscale', String(p.ps ?? 1));
   params.set('goout', String(p.goout ?? 100));
-  await page.goto(`file://${harness}#${params.toString()}`, { waitUntil: 'load' });
+  await page.goto(`file://${h}#${params.toString()}`, { waitUntil: 'load' });
   await page.waitForTimeout(700);
   const rows = await page.evaluate(({ N, MATCH }) => {
     const W = window.__canasta;
