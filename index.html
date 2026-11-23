@@ -1942,9 +1942,23 @@ function coachDiscardOptions(state) {
 function coachDiscardRisk(state, card) {
   let risk = 0;
   const opponentMelds = state.melds.filter(meld => meld.team === 1);
-  const visibleLayoff = opponentMelds.some(meld => validateLayoff(meld, [card]).ok);
-  if (visibleLayoff) risk += 8 + card.meldValue * 0.4;
-  else risk += card.meldValue * (opponentMelds.length ? 0.15 : 0.35);
+  const oppLayoff = opponentMelds.find(meld => validateLayoff(meld, [card]).ok);
+  if (oppLayoff) {
+    const count = oppLayoff.cards.length;
+    if (count >= 7) {
+      risk += 4 + card.meldValue * 0.4;
+    } else {
+      // Handing an opponent a card for a meld they already started pushes them
+      // toward a canasta; price the giveaway by how close they already are.
+      const bonus = oppLayoff.cards.some(c => c.wild) ? 300 : 500;
+      const need = 7 - count;
+      const confidence = need <= 2 ? 0.55 : need <= 4 ? 0.3 : 0.15;
+      risk += bonus * confidence / 7;
+      if (count === 6) risk += bonus;
+    }
+  } else {
+    risk += card.meldValue * (opponentMelds.length ? 0.15 : 0.35);
+  }
   if (state.melds.some(meld => meld.team === 0 && validateLayoff(meld, [card]).ok)) risk += 5;
   if (card.blackThree) risk -= 10;
   return risk;
@@ -2222,7 +2236,12 @@ function coachCardUse(card, state) {
   const lay = state.melds.find(meld => meld.team === 0 && validateLayoff(meld, [card]).ok);
   if (lay) return `can join your ${rankLabel(coachRankOfMeld(lay))} meld`;
   const theirs = state.melds.find(meld => meld.team === 1 && validateLayoff(meld, [card]).ok);
-  if (theirs) return `would help the opponents' ${rankLabel(coachRankOfMeld(theirs))} meld`;
+  if (theirs) {
+    const rank = rankLabel(coachRankOfMeld(theirs));
+    if (theirs.cards.length === 6) return `would complete the opponents' ${rank} canasta`;
+    if (theirs.cards.length >= 7) return `would add to the opponents' completed ${rank} canasta`;
+    return `would help the opponents' ${rank} meld`;
+  }
   const count = state.hand.filter(item => !item.wild && !item.redThree && item.rank === card.rank).length;
   if (count >= 3) return `is one of ${count} ${rankLabel(card.rank)}s`;
   if (count === 2) return `is one of a pair of ${rankLabel(card.rank)}s`;
