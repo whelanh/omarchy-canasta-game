@@ -26,6 +26,10 @@ Chromium binary (default `/usr/bin/chromium`, override with `CHROME`).
 
 - `wildpenalty` — penalty per wild card sitting in an unfinished (non-canasta) meld.
 - `progressscale` — multiplier on the Coach's canasta-progress heuristic.
+- `goout` — the going-out bonus the Coach optimises for (default 100).
+- `wildkeep` — flat bonus per wild card held in hand (tests wild valuation).
+- `freeze` — when 1, price the benefit of discarding a wild to freeze the pile
+  and deny an opponent a near-complete Canasta.
 - `seed` — RNG seed; `sim.mjs` sets it per hand so runs are reproducible.
 
 To add a knob for a new experiment, add its `launchParam(...)` read in

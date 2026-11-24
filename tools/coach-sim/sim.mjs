@@ -34,6 +34,8 @@ async function runPolicy(p) {
   params.set('wildpenalty', String(p.wp ?? 0));
   params.set('progressscale', String(p.ps ?? 1));
   params.set('goout', String(p.goout ?? 100));
+  params.set('wildkeep', String(p.wildkeep ?? 0));
+  params.set('freeze', String(p.freeze ?? 0));
   await page.goto(`file://${h}#${params.toString()}`, { waitUntil: 'load' });
   await page.waitForTimeout(700);
   const rows = await page.evaluate(({ N, MATCH }) => {

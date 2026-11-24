@@ -28,7 +28,56 @@ export function buildHarness(outPath = out) {
     'const COACH_MARGIN = 14;\n'
     + 'const COACH_WILD_PENALTY = Number(launchParam(\'wildpenalty\') ?? 0);\n'
     + 'const COACH_PROGRESS_SCALE = Number(launchParam(\'progressscale\') ?? 1);\n'
-    + 'const COACH_GOOUT_BONUS = Number(launchParam(\'goout\') ?? 100);'
+    + 'const COACH_GOOUT_BONUS = Number(launchParam(\'goout\') ?? 100);\n'
+    + 'const COACH_WILD_KEEP = Number(launchParam(\'wildkeep\') ?? 0);\n'
+    + 'const COACH_FREEZE = Number(launchParam(\'freeze\') ?? 0);'
+  );
+
+  // Wild keep bonus (testing whether held wilds are under-valued).
+  html = html.replace(
+    '  for (const card of wilds) value += card.meldValue * 0.9 + 10;',
+    '  for (const card of wilds) value += card.meldValue * 0.9 + 10 + COACH_WILD_KEEP;'
+  );
+
+  // Narrow freeze: discarding a wild to deny an opponent a near-complete canasta.
+  // A discarded wild blocks the pile, so there is no layoff giveaway; skip the
+  // opponent-layoff risk for wilds when freeze is on.
+  html = html.replace(
+    '  const oppLayoff = opponentMelds.find(meld => validateLayoff(meld, [card]).ok);',
+    '  const oppLayoff = (COACH_FREEZE && card.wild) ? null : opponentMelds.find(meld => validateLayoff(meld, [card]).ok);'
+  );
+  html = html.replace(
+    'function coachTerminal(state, discard) {\n'
+    + '  const hand = state.hand.filter(card => card.id !== discard.id);\n'
+    + '  const canasta = coachHasCanasta(state.melds, 0);\n'
+    + '  const goingOut = hand.length === 0 && canasta;\n'
+    + '  const value = coachEvaluate({ ...state, hand }, { goingOut }) - coachDiscardRisk(state, discard);\n'
+    + '  return { value, discard, goingOut };\n'
+    + '}',
+    'function coachFreezeBenefit(state, card) {\n'
+    + '  if (!COACH_FREEZE || !card.wild) return 0;\n'
+    + '  const top = topCard();\n'
+    + '  if (!top || top.wild || top.blackThree || top.redThree) return 0;\n'
+    + '  if (discard.some(c => c.wild || c.redThree)) return 0;\n'
+    + '  const oppMeld = state.melds.find(m => m.team === 1 && m.cards.some(c => !c.wild && c.rank === top.rank));\n'
+    + '  if (!oppMeld || oppMeld.cards.length < 5) return 0;\n'
+    + '  const canastaBonus = oppMeld.cards.some(c => c.wild) ? 300 : 500;\n'
+    + '  const pilePoints = discard.reduce((s, c) => s + c.meldValue, 0);\n'
+    + '  let benefit = pilePoints * 0.6;\n'
+    + '  if (oppMeld.cards.length === 6) benefit += canastaBonus;\n'
+    + '  else if (oppMeld.cards.length === 5) benefit += canastaBonus * 0.3;\n'
+    + '  return benefit;\n'
+    + '}\n'
+    + '\n'
+    + 'function coachTerminal(state, discard) {\n'
+    + '  const hand = state.hand.filter(card => card.id !== discard.id);\n'
+    + '  const canasta = coachHasCanasta(state.melds, 0);\n'
+    + '  const goingOut = hand.length === 0 && canasta;\n'
+    + '  const value = coachEvaluate({ ...state, hand }, { goingOut })\n'
+    + '    - coachDiscardRisk(state, discard)\n'
+    + '    + coachFreezeBenefit(state, discard);\n'
+    + '  return { value, discard, goingOut };\n'
+    + '}'
   );
 
   // Scale the canasta-progress heuristic.
